@@ -12,6 +12,8 @@
 USTRUCT(BlueprintType)
 struct FGenerationType : public FTableRowBase
 {
+	GENERATED_BODY()
+
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FString type;
 };
@@ -25,7 +27,7 @@ private:
 protected:
 
 public:
-
+	FGenerationType genType;
 
 
 };

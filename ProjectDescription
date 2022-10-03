@@ -1,0 +1,22 @@
+Quel prog est-tu ?
+	- Je suis débile (IA/Tools/Engine)
+
+C'est quoi ton projet ?
+	- Projet 1 : Génération procédurale d'intérieur
+
+Pourquoi ce projet ?
+	- Permettre d'accéder n'importe quel bâtiment inaccessible dans un jeu
+	- (à très long terme) Remplir une ville d'endroits accessible entièrement sans avoir besoin de graphs
+	- Proposer des open-world réalistes et extrêmement détaillés
+
+Définition du projet :
+
+Le système se présente sous forme d'un outil sur Unreal Engine 5 (à long terme en .uplugin).
+L'utilisateur va sélectionner une zone (simple : rectangulaire pour l'instant), définir des règles de génération, puis appuyer sur un bouton pour générer un intérieur.
+
+
+
+
+
+
+Concept :
