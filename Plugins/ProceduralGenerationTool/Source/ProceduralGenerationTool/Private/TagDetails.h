@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PropertyEditor/Public/IDetailCustomization.h"
+#include "Templates/SharedPointerInternals.h" 
 
-/**
- * 
- */
-class TagDetails
+class FTagDetails : public IDetailCustomization
 {
 public:
-	TagDetails();
-	~TagDetails();
+	static TSharedRef<IDetailCustomization> MakeInstance();
+	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
+
+
 };
