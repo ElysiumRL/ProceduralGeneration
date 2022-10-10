@@ -18,6 +18,7 @@ public:
 
 	TSharedPtr<FUICommandInfo> SimpleTool;
 	TSharedPtr<FUICommandInfo> InteractiveTool;
+	TSharedPtr<FUICommandInfo> PrimitiveShapeRenderer;
 
 protected:
 	TMap<FName, TArray<TSharedPtr<FUICommandInfo>>> Commands;

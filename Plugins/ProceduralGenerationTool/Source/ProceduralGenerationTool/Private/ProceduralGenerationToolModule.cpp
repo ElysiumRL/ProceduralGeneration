@@ -2,7 +2,6 @@
 
 #include "ProceduralGenerationToolModule.h"
 #include "ProceduralGenerationToolEditorModeCommands.h"
-#include "TagDetails.h"
 
 #define LOCTEXT_NAMESPACE "ProceduralGenerationToolModule"
 
@@ -11,9 +10,6 @@ void FProceduralGenerationToolModule::StartupModule()
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	UE_LOG(LogTemp, Warning, TEXT("Procedural Tool Loaded"));
 	
-	FPropertyEditorModule& propertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	propertyModule.RegisterCustomClassLayout(AActor::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FTagDetails::MakeInstance));
-
 	FProceduralGenerationToolEditorModeCommands::Register();
 }
 
