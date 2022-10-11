@@ -66,10 +66,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Random Subdivision Color", EditCondition = "splitBox"))
 	bool randomSubdivisionColor;
 
-	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Subdivision Colors", EditCondition = "!randomSubdivisionColor", HideAlphaChannel))
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Subdivided Box Color", EditCondition = "!randomSubdivisionColor && splitBox", HideAlphaChannel))
 	FColor subdivisionColor;
 
-	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Box Thickness"))
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Subdivided Box Thickness", EditCondition = "splitBox"))
 	float subdivisionThickness;
 
 

@@ -24,6 +24,7 @@ void UPrimitiveShapeRenderer::Setup()
 
 	Properties = NewObject<UPrimitiveShapeRendererProperties>(this);
 	AddToolPropertySource(Properties);
+
 	box.Init();
 	subdivisionBoxes = TArray<FBox>();
 }
@@ -44,8 +45,6 @@ void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 
 	for (int i = 0; i < subdivisionBoxes.Num();i++)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("AAAAAAAAAAAAAA"));
-		UE_LOG(LogTemp,Warning,TEXT("Subdivision %d : %s"),i,*subdivisionBoxes[i].GetCenter().ToString());
 		DrawBox(GetAllBoxVertices(subdivisionBoxes[i]), Properties->subdivisionColor, Properties->subdivisionThickness, RenderAPI);
 	}
 
@@ -78,17 +77,17 @@ void UPrimitiveShapeRenderer::DrawBox(TArray<FVector> vertices, FColor color, fl
 	DrawLine(vertices[0], vertices[3], color, thickness, RenderAPI);
 }
 
-TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox Box)
+TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box)
 {
 	TArray<FVector> allPoints = TArray<FVector>();
-	allPoints.Add(box.Min);										// 1
-	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Min.Z));	// 2
-	allPoints.Add(FVector(box.Max.X, box.Max.Y, box.Min.Z));	// 3
-	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Min.Z));	// 4
-	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Max.Z));	// 5
-	allPoints.Add(FVector(box.Min.X, box.Min.Y, box.Max.Z));	// 6
-	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Max.Z));	// 7
-	allPoints.Add(box.Max);										// 8
+	allPoints.Add(_Box.Min);										// 1
+	allPoints.Add(FVector(_Box.Max.X, _Box.Min.Y, _Box.Min.Z));		// 2
+	allPoints.Add(FVector(_Box.Max.X, _Box.Max.Y, _Box.Min.Z));		// 3
+	allPoints.Add(FVector(_Box.Min.X, _Box.Max.Y, _Box.Min.Z));		// 4
+	allPoints.Add(FVector(_Box.Max.X, _Box.Min.Y, _Box.Max.Z));		// 5
+	allPoints.Add(FVector(_Box.Min.X, _Box.Min.Y, _Box.Max.Z));		// 6
+	allPoints.Add(FVector(_Box.Min.X, _Box.Max.Y, _Box.Max.Z));		// 7
+	allPoints.Add(_Box.Max);										// 8
 	return allPoints;
 }
 
@@ -116,42 +115,37 @@ void UPrimitiveShapeRenderer::UpdateBoundingBox()
 void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 {
 	subdivisionBoxes.Empty();
-	if (Properties->subdivisionCount.X == 0) { Properties->subdivisionCount.X = 1; }
-	if (Properties->subdivisionCount.Y == 0) { Properties->subdivisionCount.Y = 1; }
-	if (Properties->subdivisionCount.Z == 0) { Properties->subdivisionCount.Z = 1; }
+	if (Properties->subdivisionCount.X <= 0) { Properties->subdivisionCount.X = 1; }
+	if (Properties->subdivisionCount.Y <= 0) { Properties->subdivisionCount.Y = 1; }
+	if (Properties->subdivisionCount.Z <= 0) { Properties->subdivisionCount.Z = 1; }
 	
 	FVector subdivExtent = FVector(
 		(float)Properties->boxExtent.X / (float)Properties->subdivisionCount.X,
 		(float)Properties->boxExtent.Y / (float)Properties->subdivisionCount.Y,
 		(float)Properties->boxExtent.Z / (float)Properties->subdivisionCount.Z);
 
-	UE_LOG(LogTemp, Warning, TEXT("----------------------------------"));
 	int incr = 0;
-	for (float i = 0; i < Properties->subdivisionCount.X; i++)
+	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X / Properties->subdivisionCount.X))
 	{
-		for (float j = 0; j < Properties->subdivisionCount.Y; j++)
+		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y / Properties->subdivisionCount.Y))
 		{
-			for (float k = 0; k < Properties->subdivisionCount.Z; k++)
+			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Z / Properties->subdivisionCount.Z))
 			{
 
 				FVector subdivTransform = FVector(
-					i * Properties->boxExtent.X + Properties->boxTransform.X,
-					j * Properties->boxExtent.Y + Properties->boxTransform.Y,
-					k * Properties->boxExtent.Z + Properties->boxTransform.Z);
-
-				UE_LOG(LogTemp, Warning, TEXT("Vector %d : %s"),incr, *subdivTransform.ToString());
-
+					 Properties->boxTransform.X - i - subdivExtent.X,
+					 Properties->boxTransform.Y - j - subdivExtent.Y,
+					 Properties->boxTransform.Z - k - subdivExtent.Z);
+					  
 				FBox _box;
 				_box.Init();
 				int index = subdivisionBoxes.Add(_box);
 
-				//_box.Init();
-				subdivisionBoxes[index].BuildAABB(subdivTransform, subdivExtent);
+				subdivisionBoxes[index] = FBox::BuildAABB(subdivTransform, subdivExtent);
 				incr++;
 			}
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("----------------------------------"));
 }
 
 void UPrimitiveShapeRenderer::UpdateTool()
