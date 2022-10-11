@@ -10,7 +10,7 @@
 UENUM()
 enum class EPrimitiveShapeType : uint8
 {
-	Rectangle
+	Rectangle = 0
 };
 
 
@@ -56,6 +56,23 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Box Thickness"))
 	float boxThickness;
+	
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Allow Subdivisions"))
+	bool splitBox;
+
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Rectangle Subdivisions", EditCondition = "splitBox"))
+	FIntVector subdivisionCount;
+	
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Random Subdivision Color", EditCondition = "splitBox"))
+	bool randomSubdivisionColor;
+
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Subdivision Colors", EditCondition = "!randomSubdivisionColor", HideAlphaChannel))
+	FColor subdivisionColor;
+
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Box Thickness"))
+	float subdivisionThickness;
+
+
 
 	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Force reload"))
 	bool reload;
@@ -95,14 +112,21 @@ protected:
 
 
 	static const int MoveSecondPointModifierID = 1;
+	
 	bool bSecondPointModifierDown = false;
+	
 	bool bMoveSecondPoint = false;
 
 	FBox box;
+	
+	TArray<FBox> subdivisionBoxes;
 
 
 	FInputRayHit FindRayHit(const FRay& WorldRay, FVector& HitPos);
+	
 	void UpdateBoundingBox();
+	
+	void UpdateBoxSubdivisions();
 
 	void UpdateTool();
 	
