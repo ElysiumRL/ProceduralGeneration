@@ -32,6 +32,7 @@ public:
  * Settings UObject for UProceduralGenerationToolSimpleTool. This UClass inherits from UInteractiveToolPropertySet,
  * which provides an OnModified delegate that the Tool will listen to for changes in property values.
  */
+
 UCLASS(Transient)
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRendererProperties : public UInteractiveToolPropertySet
 {
@@ -65,6 +66,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Random Subdivision Color", EditCondition = "splitBox"))
 	bool randomSubdivisionColor;
+	
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Reset Subdivision Color", EditCondition = "splitBox && randomSubdivisionColor"))
+	bool modifySubdivisionColor;
 
 	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Subdivided Box Color", EditCondition = "!randomSubdivisionColor && splitBox", HideAlphaChannel))
 	FColor subdivisionColor;
@@ -72,13 +76,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Subdivided Box Thickness", EditCondition = "splitBox"))
 	float subdivisionThickness;
 
-
-
 	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Force reload"))
 	bool reload;
 
 
 };
+
 
 /**
  * UProceduralGenerationToolSimpleTool is an example Tool that opens a message box displaying info about an actor that the user
@@ -110,7 +113,6 @@ protected:
 protected:
 	UWorld* TargetWorld;
 
-
 	static const int MoveSecondPointModifierID = 1;
 	
 	bool bSecondPointModifierDown = false;
@@ -121,12 +123,15 @@ protected:
 	
 	TArray<FBox> subdivisionBoxes;
 
+	TArray<FColor> randomSubdivisionBoxColor;
 
 	FInputRayHit FindRayHit(const FRay& WorldRay, FVector& HitPos);
 	
 	void UpdateBoundingBox();
 	
 	void UpdateBoxSubdivisions();
+
+	void SetRandomSubdivisionColors();
 
 	void UpdateTool();
 	

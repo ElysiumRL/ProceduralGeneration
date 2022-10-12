@@ -36,18 +36,26 @@ void UPrimitiveShapeRenderer::OnClicked(const FInputDeviceRay& ClickPos)
 
 void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 {
-	UpdateBoundingBox();
+	//UpdateBoundingBox();
+	//if (Properties->splitBox)
+	//{
+	//	UpdateBoxSubdivisions();
+	//}
+	DrawBox(GetAllBoxVertices(box), Properties->boxColor, Properties->boxThickness, RenderAPI);
 	if (Properties->splitBox)
 	{
-		UpdateBoxSubdivisions();
+		for (int i = 0; i < subdivisionBoxes.Num(); i++)
+		{
+			if (Properties->randomSubdivisionColor)
+			{
+				DrawBox(GetAllBoxVertices(subdivisionBoxes[i]), randomSubdivisionBoxColor[i], Properties->subdivisionThickness, RenderAPI);
+			}
+			else
+			{
+				DrawBox(GetAllBoxVertices(subdivisionBoxes[i]), Properties->subdivisionColor, Properties->subdivisionThickness, RenderAPI);
+			}
+		}
 	}
-	DrawBox(GetAllBoxVertices(box), Properties->boxColor, Properties->boxThickness, RenderAPI);
-
-	for (int i = 0; i < subdivisionBoxes.Num();i++)
-	{
-		DrawBox(GetAllBoxVertices(subdivisionBoxes[i]), Properties->subdivisionColor, Properties->subdivisionThickness, RenderAPI);
-	}
-
 }
 
 void UPrimitiveShapeRenderer::DrawBox(TArray<FVector> vertices, IToolsContextRenderAPI* RenderAPI)
@@ -94,12 +102,18 @@ TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box)
 
 void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty* Property)
 {
+
 	UpdateBoundingBox();
 	if (Properties->splitBox)
 	{
 		UpdateBoxSubdivisions();
+		if (Properties->randomSubdivisionColor || Properties->modifySubdivisionColor)
+		{
+			SetRandomSubdivisionColors();
+		}
 	}
 	Properties->reload = false;
+	Properties->modifySubdivisionColor = false;
 }
 
 FInputRayHit UPrimitiveShapeRenderer::FindRayHit(const FRay& WorldRay, FVector& HitPos)
@@ -140,11 +154,19 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 				FBox _box;
 				_box.Init();
 				int index = subdivisionBoxes.Add(_box);
-
 				subdivisionBoxes[index] = FBox::BuildAABB(subdivTransform, subdivExtent);
 				incr++;
 			}
 		}
+	}
+}
+
+void UPrimitiveShapeRenderer::SetRandomSubdivisionColors()
+{
+	randomSubdivisionBoxColor.SetNum(subdivisionBoxes.Num(),true);
+	for (int i = 0; i < randomSubdivisionBoxColor.Num(); i++)
+	{
+		randomSubdivisionBoxColor[i] = FColor::MakeRandomColor();
 	}
 }
 
