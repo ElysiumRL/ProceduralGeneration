@@ -261,6 +261,16 @@ UPrimitiveShapeRendererProperties::UPrimitiveShapeRendererProperties()
 
 }
 
+
+void UPrimitiveShapeRendererProperties::ExportProperties(const TCHAR* Path)
+{
+}
+
+void UPrimitiveShapeRendererProperties::ImportProperties(const TCHAR* SourceText)
+{
+
+}
+
 UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
 {
 	UPrimitiveShapeRenderer* NewTool = NewObject<UPrimitiveShapeRenderer>(SceneState.ToolManager);
