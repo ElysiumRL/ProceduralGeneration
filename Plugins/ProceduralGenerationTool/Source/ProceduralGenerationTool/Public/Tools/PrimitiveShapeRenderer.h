@@ -13,11 +13,6 @@ enum class EPrimitiveShapeType : uint8
 	Rectangle = 0
 };
 
-
-
-/**
- * 
- */
 UCLASS()
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRendererToolBuilder : public UInteractiveToolBuilder
 {
@@ -28,11 +23,6 @@ public:
 
 };
 
-/**
- * Settings UObject for UProceduralGenerationToolSimpleTool. This UClass inherits from UInteractiveToolPropertySet,
- * which provides an OnModified delegate that the Tool will listen to for changes in property values.
- */
-
 UCLASS(Transient)
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRendererProperties : public UInteractiveToolPropertySet
 {
@@ -42,6 +32,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Primitive Shape"))
 	EPrimitiveShapeType primitiveShape;
+	
+	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Render Box"))
+	bool renderBox;
 
 	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Box Location"))
 	FVector boxTransform;
@@ -60,6 +53,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Allow Subdivisions"))
 	bool splitBox;
+	
+	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Render Box Subdivisions", EditCondition = "splitBox"))
+	bool renderSubdividedBoxes;
 
 	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Rectangle Subdivisions", EditCondition = "splitBox"))
 	FIntVector subdivisionCount;
@@ -84,9 +80,8 @@ public:
 
 
 /**
- * UProceduralGenerationToolSimpleTool is an example Tool that opens a message box displaying info about an actor that the user
- * clicks left mouse button. All the action is in the ::OnClicked handler.
- */
+ * Primitive Shape Renderer
+**/
 UCLASS()
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRenderer : public USingleClickTool
 {
@@ -133,6 +128,8 @@ protected:
 
 	void SetRandomSubdivisionColors();
 
+	FVector RotateBox(FVector boxOrigin, FVector fromLocation, float angle);
+
 	void UpdateTool();
 	
 	void DrawLine(FVector start, FVector end, IToolsContextRenderAPI* RenderAPI);
@@ -147,6 +144,7 @@ protected:
 	
 	void DrawBox(TArray<FVector> vertices, FColor color, float thickness, IToolsContextRenderAPI* RenderAPI);
 
-	TArray<FVector> GetAllBoxVertices(FBox box);
+	
+	TArray<FVector> GetAllBoxVertices(FBox box, FBox _centralBox);
 
 };

@@ -27,6 +27,7 @@ void UPrimitiveShapeRenderer::Setup()
 
 	box.Init();
 	subdivisionBoxes = TArray<FBox>();
+	UpdateTool();
 }
 
 void UPrimitiveShapeRenderer::OnClicked(const FInputDeviceRay& ClickPos)
@@ -36,23 +37,25 @@ void UPrimitiveShapeRenderer::OnClicked(const FInputDeviceRay& ClickPos)
 
 void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 {
-	//UpdateBoundingBox();
-	//if (Properties->splitBox)
-	//{
-	//	UpdateBoxSubdivisions();
-	//}
-	DrawBox(GetAllBoxVertices(box), Properties->boxColor, Properties->boxThickness, RenderAPI);
-	if (Properties->splitBox)
+	if (Properties->renderBox)
 	{
+		DrawBox(GetAllBoxVertices(box,box), Properties->boxColor, Properties->boxThickness, RenderAPI);
+	}
+	if (Properties->splitBox && Properties->renderSubdividedBoxes)
+	{
+		if (Properties->randomSubdivisionColor && subdivisionBoxes.Num() != randomSubdivisionBoxColor.Num())
+		{
+			SetRandomSubdivisionColors();
+		}
 		for (int i = 0; i < subdivisionBoxes.Num(); i++)
 		{
 			if (Properties->randomSubdivisionColor)
 			{
-				DrawBox(GetAllBoxVertices(subdivisionBoxes[i]), randomSubdivisionBoxColor[i], Properties->subdivisionThickness, RenderAPI);
+				DrawBox(GetAllBoxVertices(subdivisionBoxes[i], box), randomSubdivisionBoxColor[i], Properties->subdivisionThickness, RenderAPI);
 			}
 			else
 			{
-				DrawBox(GetAllBoxVertices(subdivisionBoxes[i]), Properties->subdivisionColor, Properties->subdivisionThickness, RenderAPI);
+				DrawBox(GetAllBoxVertices(subdivisionBoxes[i], box), Properties->subdivisionColor, Properties->subdivisionThickness, RenderAPI);
 			}
 		}
 	}
@@ -85,7 +88,9 @@ void UPrimitiveShapeRenderer::DrawBox(TArray<FVector> vertices, FColor color, fl
 	DrawLine(vertices[0], vertices[3], color, thickness, RenderAPI);
 }
 
-TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box)
+
+
+TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box,FBox _centralBox)
 {
 	TArray<FVector> allPoints = TArray<FVector>();
 	allPoints.Add(_Box.Min);										// 1
@@ -96,21 +101,38 @@ TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box)
 	allPoints.Add(FVector(_Box.Min.X, _Box.Min.Y, _Box.Max.Z));		// 6
 	allPoints.Add(FVector(_Box.Min.X, _Box.Max.Y, _Box.Max.Z));		// 7
 	allPoints.Add(_Box.Max);										// 8
+
+
+	for (int i = 0; i < allPoints.Num(); i++)
+	{
+		allPoints[i] = RotateBox(_centralBox.GetCenter(), allPoints[i], Properties->rotation * UKismetMathLibrary::GetPI() / 180.f);
+	}
+
 	return allPoints;
 }
 
 
 void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty* Property)
 {
-
+	FString propertyName = Property->GetFName().ToString();
 	UpdateBoundingBox();
 	if (Properties->splitBox)
 	{
 		UpdateBoxSubdivisions();
-		if (Properties->randomSubdivisionColor || Properties->modifySubdivisionColor)
+
+		if (propertyName == TEXT("modifySubdivisionColor") ||
+			propertyName == TEXT("randomSubdivisionColor") ||
+			propertyName == TEXT("subdivisionCount"))
 		{
+			UpdateBoxSubdivisions();
 			SetRandomSubdivisionColors();
 		}
+	}
+	if (Properties->reload)
+	{
+		UpdateTool();
+
+		UE_LOG(LogTemp, Display, TEXT("Procedural Generation Tool : Tool Updated!"));
 	}
 	Properties->reload = false;
 	Properties->modifySubdivisionColor = false;
@@ -147,9 +169,9 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 			{
 
 				FVector subdivTransform = FVector(
-					 Properties->boxTransform.X - i - subdivExtent.X,
-					 Properties->boxTransform.Y - j - subdivExtent.Y,
-					 Properties->boxTransform.Z - k - subdivExtent.Z);
+					Properties->boxTransform.X - i - subdivExtent.X,
+					Properties->boxTransform.Y - j - subdivExtent.Y,
+					Properties->boxTransform.Z - k - subdivExtent.Z);
 					  
 				FBox _box;
 				_box.Init();
@@ -170,12 +192,30 @@ void UPrimitiveShapeRenderer::SetRandomSubdivisionColors()
 	}
 }
 
+FVector UPrimitiveShapeRenderer::RotateBox(FVector boxOrigin, FVector fromLocation, float angle)
+{
+	float s = sin(angle);
+	float c = cos(angle);
+
+	fromLocation.X -= boxOrigin.X;
+	fromLocation.Y -= boxOrigin.Y;
+
+	float xnew = fromLocation.X * c - fromLocation.Y * s;
+	float ynew = fromLocation.X * s + fromLocation.Y * c;
+
+	fromLocation.X = xnew + boxOrigin.X;
+	fromLocation.Y = ynew + boxOrigin.Y;
+
+	return FVector(fromLocation.X, fromLocation.Y, fromLocation.Z);
+}
+
 void UPrimitiveShapeRenderer::UpdateTool()
 {
 	UpdateBoundingBox();
 	if (Properties->splitBox)
 	{
 		UpdateBoxSubdivisions();
+		SetRandomSubdivisionColors();
 	}
 }
 
@@ -212,6 +252,8 @@ UPrimitiveShapeRendererProperties::UPrimitiveShapeRendererProperties()
 	boxThickness = 2.0f;
 
 	splitBox = false;
+	renderBox = true;
+	renderSubdividedBoxes = true;
 	subdivisionCount = FIntVector(3, 3, 3);
 	randomSubdivisionColor = false;
 	subdivisionColor = FColor::Blue;
