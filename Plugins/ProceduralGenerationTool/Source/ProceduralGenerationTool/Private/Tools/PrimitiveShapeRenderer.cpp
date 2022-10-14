@@ -8,6 +8,11 @@
 #include "Engine/World.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#include "SettingsExporterImporter.h"
+
+DEFINE_LOG_CATEGORY(LogShapeRenderer);
+
+
 UPrimitiveShapeRenderer::UPrimitiveShapeRenderer()
 {
 	
@@ -130,12 +135,14 @@ void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty
 	}
 	if (Properties->reload)
 	{
+		Properties->ExportProperties(TEXT("ThisPath.csv"));
 		UpdateTool();
 
 		UE_LOG(LogTemp, Display, TEXT("Procedural Generation Tool : Tool Updated!"));
 	}
 	Properties->reload = false;
 	Properties->modifySubdivisionColor = false;
+	Properties->ExportProperties(TEXT("aaaaa"));
 }
 
 FInputRayHit UPrimitiveShapeRenderer::FindRayHit(const FRay& WorldRay, FVector& HitPos)
@@ -243,32 +250,132 @@ void UPrimitiveShapeRenderer::DrawLine(FVector start, FVector end, FColor color,
 
 UPrimitiveShapeRendererProperties::UPrimitiveShapeRendererProperties()
 {
-	primitiveShape = EPrimitiveShapeType::Rectangle;
-
-	boxExtent = FVector(100.0, 50.0, 100.0);
-	boxTransform = FVector::Zero();
-	rotation = 0.0f;
-	boxColor = FColor::Red;
-	boxThickness = 2.0f;
-
-	splitBox = false;
-	renderBox = true;
-	renderSubdividedBoxes = true;
-	subdivisionCount = FIntVector(3, 3, 3);
-	randomSubdivisionColor = false;
-	subdivisionColor = FColor::Blue;
-	subdivisionThickness = 1.f;
-
+	InitializeDataTable();
+	bool propertiesLoaded = LoadPropertiesFromDataTable();
+	if (!propertiesLoaded)
+	{
+		UE_LOG(LogShapeRenderer, Warning, TEXT("Constructor : Properties NOT LOADED"));
+		SetDefaultProperties();
+	}
 }
 
 
 void UPrimitiveShapeRendererProperties::ExportProperties(const TCHAR* Path)
 {
+	SendToDataTable();
+	//FSettingsExporterImporter::ExportToCSV(Path, propertiesAsTable);
 }
 
 void UPrimitiveShapeRendererProperties::ImportProperties(const TCHAR* SourceText)
 {
+	FSettingsExporterImporter::ImportFromCSV(SourceText, propertiesAsTable);
+}
 
+void UPrimitiveShapeRendererProperties::SetDefaultProperties()
+{
+	if (this->propertiesAsTable == nullptr)
+	{
+		propertiesAsTable = NewObject<UDataTable>();
+	}
+	primitiveShape = EPrimitiveShapeType::Rectangle;
+	
+	renderBox = true;
+	boxTransform = FVector::Zero();
+	rotation = 0.0f;
+	boxExtent = FVector(100.0, 100.0, 100.0);
+	boxColor = FColor::Red;
+	boxThickness = 2.0f;
+
+	splitBox = false;
+	renderSubdividedBoxes = true;
+	subdivisionCount = FIntVector(3, 3, 3);
+	randomSubdivisionColor = false;
+	subdivisionColor = FColor::Blue;
+	subdivisionThickness = 1.f;
+}
+
+void UPrimitiveShapeRendererProperties::SendToDataTable()
+{
+	FPSRSettingsTable table;
+	table.boxColor = boxColor;
+	table.boxExtent = boxExtent;
+	table.boxThickness = boxThickness;
+	table.boxTransform = boxTransform;
+	table.primitiveShape = primitiveShape;
+	table.rotation = rotation;
+	table.splitBox = splitBox;
+	table.randomSubdivisionColor = randomSubdivisionColor;
+	table.subdivisionColor = subdivisionColor;
+	table.subdivisionCount = subdivisionCount;
+	table.subdivisionThickness = subdivisionThickness;
+
+	propertiesAsTable->AddRow(TEXT("Settings 01"), table);
+	
+	propertiesAsTable->MarkPackageDirty();
+
+}
+
+void UPrimitiveShapeRendererProperties::InitializeDataTable()
+{
+	UDataTable* DT;
+	FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TEXT("/ProceduralGenerationTool/Settings/PrimitiveRendererSettings.PrimitiveRendererSettings"));
+	DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
+	if (DT)
+	{
+		propertiesAsTable = DT;
+		UE_LOG(LogShapeRenderer, Warning, TEXT("Asset Loaded"));
+	}
+	else
+	{
+		DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
+	}
+
+	if (DT)
+	{
+		propertiesAsTable = DT;
+		UE_LOG(LogShapeRenderer, Warning, TEXT("Asset Loaded"));
+	}
+	else
+	{
+		UE_LOG(LogShapeRenderer, Warning, TEXT("Procedural Generation Tool : Property Data Table not found !"));
+	}
+}
+
+bool UPrimitiveShapeRendererProperties::LoadPropertiesFromDataTable()
+{
+
+	TArray<FName> rowNames = propertiesAsTable->GetRowNames();
+
+	for (int i = 0; i < rowNames.Num(); i++)
+	{
+		FPSRSettingsTable* table = propertiesAsTable->FindRow<FPSRSettingsTable>(rowNames[i], "");
+		
+		if (table == nullptr)
+		{
+			continue;
+		}
+
+		boxColor = table->boxColor;
+		boxExtent = table->boxExtent;
+		boxThickness = table->boxThickness;
+		boxTransform = table->boxTransform;
+		primitiveShape = table->primitiveShape;
+		rotation = table->rotation;
+		splitBox = table->splitBox;
+		randomSubdivisionColor = table->randomSubdivisionColor;
+		subdivisionColor = table->subdivisionColor;
+		subdivisionCount = table->subdivisionCount;
+		subdivisionThickness = table->subdivisionThickness;
+		renderBox = true;
+		if (splitBox)
+		{
+			renderSubdividedBoxes = true;
+		}
+
+		return true;
+	}
+	UE_LOG(LogShapeRenderer, Warning, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+	return false;
 }
 
 UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuilderState& SceneState) const

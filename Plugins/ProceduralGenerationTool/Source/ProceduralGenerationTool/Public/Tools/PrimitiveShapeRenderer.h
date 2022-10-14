@@ -7,6 +7,10 @@
 #include "BaseTools/SingleClickTool.h"
 #include "PrimitiveShapeRenderer.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogShapeRenderer, Log, All);
+
+
+
 UENUM()
 enum class EPrimitiveShapeType : uint8
 {
@@ -78,6 +82,18 @@ public:
 	void ExportProperties(const TCHAR* Path);
 
 	void ImportProperties(const TCHAR* SourceText);
+
+	void SetDefaultProperties();
+
+	void SendToDataTable();
+
+	void InitializeDataTable();
+
+	bool LoadPropertiesFromDataTable();
+
+private:
+
+	UDataTable* propertiesAsTable;
 
 };
 
