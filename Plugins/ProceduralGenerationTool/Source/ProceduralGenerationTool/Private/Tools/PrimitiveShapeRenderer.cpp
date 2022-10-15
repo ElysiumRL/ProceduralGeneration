@@ -135,14 +135,14 @@ void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty
 	}
 	if (Properties->reload)
 	{
-		Properties->ExportProperties(TEXT("ThisPath.csv"));
+		Properties->ExportProperties();
 		UpdateTool();
 
 		UE_LOG(LogTemp, Display, TEXT("Procedural Generation Tool : Tool Updated!"));
 	}
 	Properties->reload = false;
 	Properties->modifySubdivisionColor = false;
-	Properties->ExportProperties(TEXT("aaaaa"));
+	Properties->ExportProperties();
 }
 
 FInputRayHit UPrimitiveShapeRenderer::FindRayHit(const FRay& WorldRay, FVector& HitPos)
@@ -260,15 +260,20 @@ UPrimitiveShapeRendererProperties::UPrimitiveShapeRendererProperties()
 }
 
 
-void UPrimitiveShapeRendererProperties::ExportProperties(const TCHAR* Path)
+void UPrimitiveShapeRendererProperties::ExportProperties()
 {
 	SendToDataTable();
-	//FSettingsExporterImporter::ExportToCSV(Path, propertiesAsTable);
 }
 
-void UPrimitiveShapeRendererProperties::ImportProperties(const TCHAR* SourceText)
+void UPrimitiveShapeRendererProperties::ImportProperties()
 {
-	FSettingsExporterImporter::ImportFromCSV(SourceText, propertiesAsTable);
+	bool propertiesLoaded = LoadPropertiesFromDataTable();
+	if (!propertiesLoaded)
+	{
+		UE_LOG(LogShapeRenderer, Warning, TEXT("Constructor : Properties NOT LOADED"));
+		SetDefaultProperties();
+	}
+
 }
 
 void UPrimitiveShapeRendererProperties::SetDefaultProperties()
@@ -374,7 +379,6 @@ bool UPrimitiveShapeRendererProperties::LoadPropertiesFromDataTable()
 
 		return true;
 	}
-	UE_LOG(LogShapeRenderer, Warning, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
 	return false;
 }
 
