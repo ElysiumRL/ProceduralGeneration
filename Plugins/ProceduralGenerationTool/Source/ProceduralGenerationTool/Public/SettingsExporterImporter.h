@@ -8,6 +8,7 @@
 /* ------------ */
 #include "Tools/PrimitiveShapeRenderer.h"
 /* ------------ */
+
 #include "SettingsExporterImporter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -47,4 +48,15 @@ struct FPSRSettingsTable : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Subdivided Box Thickness", EditCondition = "splitBox"))
 	float subdivisionThickness;
+};
+
+
+struct PROCEDURALGENERATIONTOOL_API FSettingsExporterImporter
+{
+public:
+
+	static void ExportToCSV(const TCHAR* filename, UDataTable* table);
+
+	static void ImportFromCSV(const TCHAR* filename, UDataTable* table);
+
 };

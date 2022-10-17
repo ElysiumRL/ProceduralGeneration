@@ -21,8 +21,6 @@ UCLASS()
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRendererToolBuilder : public UInteractiveToolBuilder
 {
 	GENERATED_BODY()
-
-
 public:
 	virtual bool CanBuildTool(const FToolBuilderState& SceneState) const override { return true; }
 	virtual UInteractiveTool* BuildTool(const FToolBuilderState& SceneState) const override;
@@ -33,8 +31,6 @@ UCLASS(Transient)
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRendererProperties : public UInteractiveToolPropertySet
 {
 	GENERATED_BODY()
-
-
 public:
 	UPrimitiveShapeRendererProperties();
 	
@@ -83,9 +79,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Force reload"))
 	bool reload;
 
-	void ExportProperties();
+	void ExportProperties(const TCHAR* Path);
 
-	void ImportProperties();
+	void ImportProperties(const TCHAR* SourceText);
 
 	void SetDefaultProperties();
 
@@ -109,7 +105,6 @@ UCLASS()
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRenderer : public USingleClickTool
 {
 	GENERATED_BODY()
-
 
 public:
 	UPrimitiveShapeRenderer();
@@ -168,6 +163,7 @@ protected:
 	
 	void DrawBox(TArray<FVector> vertices, FColor color, float thickness, IToolsContextRenderAPI* RenderAPI);
 
+	
 	TArray<FVector> GetAllBoxVertices(FBox box, FBox _centralBox);
 
 };
