@@ -120,19 +120,24 @@ TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box,FBox _centr
 void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty* Property)
 {
 	FString propertyName = Property->GetFName().ToString();
-	UpdateBoundingBox();
-	if (Properties->splitBox)
+	SelectUpdateMethod();
+	if (Properties->randomSubdivisionColor)
 	{
-		UpdateBoxSubdivisions();
-
-		if (propertyName == TEXT("modifySubdivisionColor") ||
-			propertyName == TEXT("randomSubdivisionColor") ||
-			propertyName == TEXT("subdivisionCount"))
-		{
-			UpdateBoxSubdivisions();
-			SetRandomSubdivisionColors();
-		}
+		SetRandomSubdivisionColors();
 	}
+	//UpdateBoundingBox();
+	//if (Properties->splitBox)
+	//{
+	//	UpdateBoxSubdivisions();
+	//
+	//	if (propertyName == TEXT("modifySubdivisionColor") ||
+	//		propertyName == TEXT("randomSubdivisionColor") ||
+	//		propertyName == TEXT("subdivisionCount"))
+	//	{
+	//		UpdateBoxSubdivisions();
+	//		SetRandomSubdivisionColors();
+	//	}
+	//}
 	if (Properties->reload)
 	{
 		UpdateTool();
@@ -148,6 +153,23 @@ FInputRayHit UPrimitiveShapeRenderer::FindRayHit(const FRay& WorldRay, FVector& 
 	return FInputRayHit();
 }
 
+void UPrimitiveShapeRenderer::SelectUpdateMethod()
+{
+	UpdateBoundingBox();
+
+	if (Properties->splitBox)
+	{
+		if (Properties->primitiveShape == EPrimitiveShapeType::RectangleHollow)
+		{
+			UpdateHollowBoxSubdivisions();
+		}
+		else
+		{
+			UpdateBoxSubdivisions();
+		}
+	}
+}
+
 void UPrimitiveShapeRenderer::UpdateBoundingBox()
 {
 	box = FBox::BuildAABB(Properties->boxTransform, Properties->boxExtent);
@@ -156,6 +178,7 @@ void UPrimitiveShapeRenderer::UpdateBoundingBox()
 void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 {
 	subdivisionBoxes.Empty();
+
 	if (Properties->subdivisionCount.X <= 0) { Properties->subdivisionCount.X = 1; }
 	if (Properties->subdivisionCount.Y <= 0) { Properties->subdivisionCount.Y = 1; }
 	if (Properties->subdivisionCount.Z <= 0) { Properties->subdivisionCount.Z = 1; }
@@ -165,27 +188,68 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 		(float)Properties->boxExtent.Y / (float)Properties->subdivisionCount.Y,
 		(float)Properties->boxExtent.Z / (float)Properties->subdivisionCount.Z);
 
-	int incr = 0;
 	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X / Properties->subdivisionCount.X))
 	{
 		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y / Properties->subdivisionCount.Y))
 		{
 			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Z / Properties->subdivisionCount.Z))
 			{
+					FVector subdivTransform = FVector(
+						Properties->boxTransform.X - i - subdivExtent.X,
+						Properties->boxTransform.Y - j - subdivExtent.Y,
+						Properties->boxTransform.Z - k - subdivExtent.Z);
 
+					FBox _box;
+					_box.Init();
+					int index = subdivisionBoxes.Add(_box);
+					subdivisionBoxes[index] = FBox::BuildAABB(subdivTransform, subdivExtent);
+			}
+		}
+	}
+}
+
+void UPrimitiveShapeRenderer::UpdateHollowBoxSubdivisions()
+{
+	subdivisionBoxes.Empty();
+
+	if (Properties->subdivisionCount.X <= 0) { Properties->subdivisionCount.X = 1; }
+	if (Properties->subdivisionCount.Y <= 0) { Properties->subdivisionCount.Y = 1; }
+	if (Properties->subdivisionCount.Z <= 0) { Properties->subdivisionCount.Z = 1; }
+
+	FVector subdivExtent = FVector(
+		(float)Properties->boxExtent.X / (float)Properties->subdivisionCount.X,
+		(float)Properties->boxExtent.Y / (float)Properties->subdivisionCount.Y,
+		(float)Properties->boxExtent.Z / (float)Properties->subdivisionCount.Z);
+
+	//i,j,k represents locations
+	//relI,relJ,relK represents coordinates relative to the boxes
+	int relI = 0;
+	int relJ = 0;
+	int relK = 0;
+	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X))
+	{
+		relI++;
+		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y))
+		{
+			relJ++;
+			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Z / Properties->subdivisionCount.Z))
+			{
+				relK++;
 				FVector subdivTransform = FVector(
 					Properties->boxTransform.X - i - subdivExtent.X,
 					Properties->boxTransform.Y - j - subdivExtent.Y,
 					Properties->boxTransform.Z - k - subdivExtent.Z);
-					  
+
 				FBox _box;
 				_box.Init();
 				int index = subdivisionBoxes.Add(_box);
 				subdivisionBoxes[index] = FBox::BuildAABB(subdivTransform, subdivExtent);
-				incr++;
 			}
+			relK = 0;
 		}
+		relJ = 0;
 	}
+
 }
 
 void UPrimitiveShapeRenderer::SetRandomSubdivisionColors()
@@ -318,7 +382,7 @@ bool UPrimitiveShapeRendererProperties::ImportProperties()
 
 void UPrimitiveShapeRendererProperties::DefaultProperties()
 {
-	primitiveShape = EPrimitiveShapeType::Rectangle;
+	primitiveShape = EPrimitiveShapeType::RectangleFilled;
 	
 	renderBox = true;
 	boxTransform = FVector::Zero();
@@ -370,4 +434,12 @@ UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuild
 	UPrimitiveShapeRenderer* NewTool = NewObject<UPrimitiveShapeRenderer>(SceneState.ToolManager);
 	NewTool->SetWorld(SceneState.World);
 	return NewTool;
+}
+
+UEnhancedBox::UEnhancedBox(const FVector& origin,const FVector& extent,const FIntVector& _relativeLocation)
+{
+	box = FBox::BuildAABB(origin, extent);
+
+	relativeLocation = _relativeLocation;
+
 }

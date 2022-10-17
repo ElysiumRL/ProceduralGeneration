@@ -10,19 +10,23 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogShapeRenderer, Log, All);
 
 
-
-UENUM()
+UENUM(Blueprintable,BlueprintType)
 enum class EPrimitiveShapeType : uint8
 {
-	Rectangle = 0
+	RectangleFilled = 0,
+	RectangleHollow = 1
 };
 
 UCLASS()
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRendererToolBuilder : public UInteractiveToolBuilder
 {
 	GENERATED_BODY()
+
+
 public:
+
 	virtual bool CanBuildTool(const FToolBuilderState& SceneState) const override { return true; }
+
 	virtual UInteractiveTool* BuildTool(const FToolBuilderState& SceneState) const override;
 
 };
@@ -31,6 +35,8 @@ UCLASS(Transient)
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRendererProperties : public UInteractiveToolPropertySet
 {
 	GENERATED_BODY()
+
+
 public:
 	UPrimitiveShapeRendererProperties();
 	
@@ -93,6 +99,28 @@ private:
 
 };
 
+//FBox wrapper
+class PROCEDURALGENERATIONTOOL_API UEnhancedBox
+{
+	UEnhancedBox(const FVector& origin, const FVector& extent, const FIntVector& _relativeLocation);
+
+public:
+
+	FBox box;
+
+	TArray<FVector> vertices;
+
+	FVector origin;
+
+	FVector extent;
+
+	FIntVector relativeLocation;
+
+	//Generates all the vertices of the Box
+	void GenerateVertices(const FBox& _centralBox);
+};
+
+
 
 /**
  * Primitive Shape Renderer
@@ -101,6 +129,7 @@ UCLASS()
 class PROCEDURALGENERATIONTOOL_API UPrimitiveShapeRenderer : public USingleClickTool
 {
 	GENERATED_BODY()
+
 
 public:
 	UPrimitiveShapeRenderer();
@@ -137,9 +166,13 @@ protected:
 
 	FInputRayHit FindRayHit(const FRay& WorldRay, FVector& HitPos);
 	
+	void SelectUpdateMethod();
+
 	void UpdateBoundingBox();
 	
 	void UpdateBoxSubdivisions();
+	
+	void UpdateHollowBoxSubdivisions();
 
 	void SetRandomSubdivisionColors();
 
@@ -159,7 +192,5 @@ protected:
 	
 	void DrawBox(TArray<FVector> vertices, FColor color, float thickness, IToolsContextRenderAPI* RenderAPI);
 
-	
 	TArray<FVector> GetAllBoxVertices(FBox box, FBox _centralBox);
-
 };
