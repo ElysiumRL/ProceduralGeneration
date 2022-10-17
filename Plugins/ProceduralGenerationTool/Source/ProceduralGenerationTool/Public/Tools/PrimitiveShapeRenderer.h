@@ -79,17 +79,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Force reload"))
 	bool reload;
 
-	void ExportProperties(const TCHAR* Path);
+	void ExportProperties();
 
-	void ImportProperties(const TCHAR* SourceText);
+	bool ImportProperties();
 
-	void SetDefaultProperties();
-
-	void SendToDataTable();
+	void DefaultProperties();
 
 	void InitializeDataTable();
-
-	bool LoadPropertiesFromDataTable();
 
 private:
 

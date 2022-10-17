@@ -11,7 +11,9 @@
 
 #include "SettingsExporterImporter.generated.h"
 
-USTRUCT(BlueprintType)
+#define PRIMITIVE_RENDERING_SETTINGS TEXT("/ProceduralGenerationTool/Settings/PrimitiveRendererSettings.PrimitiveRendererSettings")
+
+USTRUCT(BlueprintType, Blueprintable)
 struct FPSRSettingsTable : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -51,12 +53,16 @@ struct FPSRSettingsTable : public FTableRowBase
 };
 
 
-struct PROCEDURALGENERATIONTOOL_API FSettingsExporterImporter
+USTRUCT(BlueprintType, Blueprintable)
+struct FObjectTags : public FTableRowBase
 {
-public:
+	GENERATED_BODY()
 
-	static void ExportToCSV(const TCHAR* filename, UDataTable* table);
 
-	static void ImportFromCSV(const TCHAR* filename, UDataTable* table);
+	UPROPERTY(EditAnywhere, Category = "Tag", meta = (DisplayName = "Category"))
+	FString category;
+
+	UPROPERTY(EditAnywhere, Category = "Tag", meta = (DisplayName = "Tags"))
+	TArray<FString> tags;
 
 };
