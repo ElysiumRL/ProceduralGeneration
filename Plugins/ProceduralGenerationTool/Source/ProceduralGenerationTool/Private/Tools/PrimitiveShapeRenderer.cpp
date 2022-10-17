@@ -15,7 +15,6 @@ DEFINE_LOG_CATEGORY(LogShapeRenderer);
 
 UPrimitiveShapeRenderer::UPrimitiveShapeRenderer()
 {
-	
 }
 
 void UPrimitiveShapeRenderer::SetWorld(UWorld* World)
@@ -30,8 +29,8 @@ void UPrimitiveShapeRenderer::Setup()
 	Properties = NewObject<UPrimitiveShapeRendererProperties>(this);
 	AddToolPropertySource(Properties);
 
-	box.Init();
-	subdivisionBoxes = TArray<FBox>();
+	centralBox.box.Init();
+	subdivisionBoxes = TArray<UEnhancedBox>();
 	UpdateTool();
 }
 
@@ -44,7 +43,8 @@ void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 {
 	if (Properties->renderBox)
 	{
-		DrawBox(GetAllBoxVertices(box,box), Properties->boxColor, Properties->boxThickness, RenderAPI);
+		centralBox.DrawBox(RenderAPI, Properties->boxColor, Properties->boxThickness);
+		//DrawBox(GetAllBoxVertices(centralBox,centralBox), Properties->boxColor, Properties->boxThickness, RenderAPI);
 	}
 	if (Properties->splitBox && Properties->renderSubdividedBoxes)
 	{
@@ -56,11 +56,13 @@ void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 		{
 			if (Properties->randomSubdivisionColor)
 			{
-				DrawBox(GetAllBoxVertices(subdivisionBoxes[i], box), randomSubdivisionBoxColor[i], Properties->subdivisionThickness, RenderAPI);
+				subdivisionBoxes[i].DrawBox(RenderAPI, randomSubdivisionBoxColor[i], Properties->subdivisionThickness);
+				//DrawBox(GetAllBoxVertices(subdivisionBoxes[i], centralBox), randomSubdivisionBoxColor[i], Properties->subdivisionThickness, RenderAPI);
 			}
 			else
 			{
-				DrawBox(GetAllBoxVertices(subdivisionBoxes[i], box), Properties->subdivisionColor, Properties->subdivisionThickness, RenderAPI);
+				subdivisionBoxes[i].DrawBox(RenderAPI, Properties->subdivisionColor, Properties->subdivisionThickness);
+				//DrawBox(GetAllBoxVertices(subdivisionBoxes[i], centralBox), Properties->subdivisionColor, Properties->subdivisionThickness, RenderAPI);
 			}
 		}
 	}
@@ -161,7 +163,7 @@ void UPrimitiveShapeRenderer::SelectUpdateMethod()
 	{
 		if (Properties->primitiveShape == EPrimitiveShapeType::RectangleHollow)
 		{
-			UpdateHollowBoxSubdivisions();
+			UpdateBoxSubdivisions();
 		}
 		else
 		{
@@ -172,43 +174,11 @@ void UPrimitiveShapeRenderer::SelectUpdateMethod()
 
 void UPrimitiveShapeRenderer::UpdateBoundingBox()
 {
-	box = FBox::BuildAABB(Properties->boxTransform, Properties->boxExtent);
+	//centralBox.box = FBox::BuildAABB(Properties->boxTransform, Properties->boxExtent);
+	centralBox = UEnhancedBox(Properties->boxTransform, Properties->boxExtent, Properties->rotation, FIntVector(0, 0, 0));
 }
 
 void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
-{
-	subdivisionBoxes.Empty();
-
-	if (Properties->subdivisionCount.X <= 0) { Properties->subdivisionCount.X = 1; }
-	if (Properties->subdivisionCount.Y <= 0) { Properties->subdivisionCount.Y = 1; }
-	if (Properties->subdivisionCount.Z <= 0) { Properties->subdivisionCount.Z = 1; }
-	
-	FVector subdivExtent = FVector(
-		(float)Properties->boxExtent.X / (float)Properties->subdivisionCount.X,
-		(float)Properties->boxExtent.Y / (float)Properties->subdivisionCount.Y,
-		(float)Properties->boxExtent.Z / (float)Properties->subdivisionCount.Z);
-
-	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X / Properties->subdivisionCount.X))
-	{
-		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y / Properties->subdivisionCount.Y))
-		{
-			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Z / Properties->subdivisionCount.Z))
-			{
-					FVector subdivTransform = FVector(
-						Properties->boxTransform.X - i - subdivExtent.X,
-						Properties->boxTransform.Y - j - subdivExtent.Y,
-						Properties->boxTransform.Z - k - subdivExtent.Z);
-
-					FBox _box;
-					_box.Init();
-					int index = subdivisionBoxes.Add(_box);
-					subdivisionBoxes[index] = FBox::BuildAABB(subdivTransform, subdivExtent);
-			}
-		}
-	}
-}
-
-void UPrimitiveShapeRenderer::UpdateHollowBoxSubdivisions()
 {
 	subdivisionBoxes.Empty();
 
@@ -240,10 +210,14 @@ void UPrimitiveShapeRenderer::UpdateHollowBoxSubdivisions()
 					Properties->boxTransform.Y - j - subdivExtent.Y,
 					Properties->boxTransform.Z - k - subdivExtent.Z);
 
-				FBox _box;
-				_box.Init();
-				int index = subdivisionBoxes.Add(_box);
-				subdivisionBoxes[index] = FBox::BuildAABB(subdivTransform, subdivExtent);
+				UEnhancedBox generatedBox = UEnhancedBox(subdivTransform, subdivExtent, Properties->rotation, FIntVector(relI, relJ, relK), centralBox);
+
+				subdivisionBoxes.Add(generatedBox);
+
+				//FBox _box;
+				//_box.Init();
+				//int index = subdivisionBoxes.Add(_box);
+				//subdivisionBoxes[index] = FBox::BuildAABB(subdivTransform, subdivExtent);
 			}
 			relK = 0;
 		}
@@ -436,10 +410,82 @@ UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuild
 	return NewTool;
 }
 
-UEnhancedBox::UEnhancedBox(const FVector& origin,const FVector& extent,const FIntVector& _relativeLocation)
+UEnhancedBox::UEnhancedBox(const FVector& origin,const FVector& extent,float _rotation,const FIntVector& _relativeLocation)
 {
 	box = FBox::BuildAABB(origin, extent);
-
 	relativeLocation = _relativeLocation;
+	rotation = _rotation;
+}
+
+UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent,float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox)
+{
+	UEnhancedBox(origin, extent,_rotation, _relativeLocation);
+	GenerateVertices(centralBox);
+}
+
+void UEnhancedBox::GenerateVertices(const UEnhancedBox& _centralBox)
+{
+	TArray<FVector> allPoints = TArray<FVector>();
+	allPoints.Add(_centralBox.box.Min);																// 1
+	allPoints.Add(FVector(_centralBox.box.Max.X, _centralBox.box.Min.Y, _centralBox.box.Min.Z));	// 2
+	allPoints.Add(FVector(_centralBox.box.Max.X, _centralBox.box.Max.Y, _centralBox.box.Min.Z));	// 3
+	allPoints.Add(FVector(_centralBox.box.Min.X, _centralBox.box.Max.Y, _centralBox.box.Min.Z));	// 4
+	allPoints.Add(FVector(_centralBox.box.Max.X, _centralBox.box.Min.Y, _centralBox.box.Max.Z));	// 5
+	allPoints.Add(FVector(_centralBox.box.Min.X, _centralBox.box.Min.Y, _centralBox.box.Max.Z));	// 6
+	allPoints.Add(FVector(_centralBox.box.Min.X, _centralBox.box.Max.Y, _centralBox.box.Max.Z));	// 7
+	allPoints.Add(_centralBox.box.Max);																// 8
+
+	for (int i = 0; i < allPoints.Num(); i++)
+	{
+		allPoints[i] = RotateBox(_centralBox.box.GetCenter(), allPoints[i], rotation * UKismetMathLibrary::GetPI() / 180.f);
+	}
+
+	vertices = allPoints;
+}
+
+void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& color /*= FColor::Red*/, float thickness /*= 2.f*/)
+{
+	// Vertices must be precisely at in the format of GetAllBoxVertices() in order to work
+	DrawLine(RenderAPI, vertices[5], vertices[4], color, thickness);
+	DrawLine(RenderAPI, vertices[6], vertices[7], color, thickness);
+	DrawLine(RenderAPI, vertices[0], vertices[1], color, thickness);
+	DrawLine(RenderAPI, vertices[3], vertices[2], color, thickness);
+	DrawLine(RenderAPI, vertices[0], vertices[5], color, thickness);
+	DrawLine(RenderAPI, vertices[1], vertices[4], color, thickness);
+	DrawLine(RenderAPI, vertices[3], vertices[6], color, thickness);
+	DrawLine(RenderAPI, vertices[2], vertices[7], color, thickness);
+	DrawLine(RenderAPI, vertices[4], vertices[7], color, thickness);
+	DrawLine(RenderAPI, vertices[1], vertices[2], color, thickness);
+	DrawLine(RenderAPI, vertices[5], vertices[6], color, thickness);
+	DrawLine(RenderAPI, vertices[0], vertices[3], color, thickness);
+
+}
+
+void UEnhancedBox::DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& color /*= FColor::Red*/, float thickness /*= 2.f*/)
+{
+	//From the InteractiveTool demo
+	auto PDI = RenderAPI->GetPrimitiveDrawInterface();
+	// draw a thin line that shows through objects
+	PDI->DrawLine(start, end, color, SDPG_Foreground, thickness, 0.0f, true);
+	// draw a thicker line that is depth-tested
+	PDI->DrawLine(start, end, color, SDPG_World, thickness, 0.0f, true);
+
+}
+
+FVector UEnhancedBox::RotateBox(const FVector& boxOrigin, FVector fromLocation, float angle)
+{
+	float sinAngle = sin(angle);
+	float cosAngle = cos(angle);
+
+	fromLocation.X -= boxOrigin.X;
+	fromLocation.Y -= boxOrigin.Y;
+
+	float xnew = fromLocation.X * cosAngle - fromLocation.Y * sinAngle;
+	float ynew = fromLocation.X * sinAngle + fromLocation.Y * cosAngle;
+
+	fromLocation.X = xnew + boxOrigin.X;
+	fromLocation.Y = ynew + boxOrigin.Y;
+
+	return FVector(fromLocation.X, fromLocation.Y, fromLocation.Z);
 
 }

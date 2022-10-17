@@ -102,9 +102,13 @@ private:
 //FBox wrapper
 class PROCEDURALGENERATIONTOOL_API UEnhancedBox
 {
-	UEnhancedBox(const FVector& origin, const FVector& extent, const FIntVector& _relativeLocation);
-
 public:
+
+	UEnhancedBox() = default;
+
+	UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation = 0.0f, const FIntVector& _relativeLocation = FIntVector::ZeroValue);
+	
+	UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox);
 
 	FBox box;
 
@@ -116,8 +120,17 @@ public:
 
 	FIntVector relativeLocation;
 
+	float rotation;
+
 	//Generates all the vertices of the Box
-	void GenerateVertices(const FBox& _centralBox);
+	void GenerateVertices(const UEnhancedBox& _centralBox);
+
+	void DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& color = FColor::Red, float thickness = 2.f);
+	
+	void DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& color = FColor::Red, float thickness = 2.f);
+
+	FVector RotateBox(const FVector& boxOrigin, FVector fromLocation, float angle);
+
 };
 
 
@@ -158,9 +171,9 @@ protected:
 	
 	bool bMoveSecondPoint = false;
 
-	FBox box;
+	UEnhancedBox centralBox;
 	
-	TArray<FBox> subdivisionBoxes;
+	TArray<UEnhancedBox> subdivisionBoxes;
 
 	TArray<FColor> randomSubdivisionBoxColor;
 
@@ -172,8 +185,6 @@ protected:
 	
 	void UpdateBoxSubdivisions();
 	
-	void UpdateHollowBoxSubdivisions();
-
 	void SetRandomSubdivisionColors();
 
 	FVector RotateBox(FVector boxOrigin, FVector fromLocation, float angle);
