@@ -182,17 +182,30 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 				UEnhancedBox generatedBox = UEnhancedBox(subdivTransform, subdivExtent, Properties->rotation, FIntVector(relI, relJ, relK), centralBox);
 
 				subdivisionBoxes.Add(generatedBox);
-
-				//FBox _box;
-				//_box.Init();
-				//int index = subdivisionBoxes.Add(_box);
-				//subdivisionBoxes[index] = FBox::BuildAABB(subdivTransform, subdivExtent);
 			}
 			relK = 0;
 		}
 		relJ = 0;
 	}
 
+	//Remove boxes if hollow is enabled
+	if (Properties->primitiveShape == EPrimitiveShapeType::RectangleHollow)
+	{
+		for (int i = 0; i < subdivisionBoxes.Num(); i++)
+		{
+			if (
+				(subdivisionBoxes[i].relativeLocation.X == 1 || subdivisionBoxes[i].relativeLocation.X == Properties->subdivisionCount.X)
+				|| (subdivisionBoxes[i].relativeLocation.Y == 1 || subdivisionBoxes[i].relativeLocation.Y == Properties->subdivisionCount.Y))
+			{
+
+			}
+			else
+			{
+				subdivisionBoxes.RemoveAt(i);
+				i--;
+			}
+		}
+	}
 }
 
 void UPrimitiveShapeRenderer::SetRandomSubdivisionColors()
