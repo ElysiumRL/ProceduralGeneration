@@ -57,45 +57,14 @@ void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 			if (Properties->randomSubdivisionColor)
 			{
 				subdivisionBoxes[i].DrawBox(RenderAPI, randomSubdivisionBoxColor[i], Properties->subdivisionThickness);
-				//DrawBox(GetAllBoxVertices(subdivisionBoxes[i], centralBox), randomSubdivisionBoxColor[i], Properties->subdivisionThickness, RenderAPI);
 			}
 			else
 			{
 				subdivisionBoxes[i].DrawBox(RenderAPI, Properties->subdivisionColor, Properties->subdivisionThickness);
-				//DrawBox(GetAllBoxVertices(subdivisionBoxes[i], centralBox), Properties->subdivisionColor, Properties->subdivisionThickness, RenderAPI);
 			}
 		}
 	}
 }
-
-void UPrimitiveShapeRenderer::DrawBox(TArray<FVector> vertices, IToolsContextRenderAPI* RenderAPI)
-{
-	DrawBox(vertices,FColor::Red, RenderAPI);
-}
-
-void UPrimitiveShapeRenderer::DrawBox(TArray<FVector> vertices, FColor color, IToolsContextRenderAPI* RenderAPI)
-{
-	DrawBox(vertices, color, 2.0f, RenderAPI);
-}
-
-void UPrimitiveShapeRenderer::DrawBox(TArray<FVector> vertices, FColor color, float thickness, IToolsContextRenderAPI* RenderAPI)
-{
-	// Vertices must be precisely at in the format of GetAllBoxVertices() in order to work
-	DrawLine(vertices[5], vertices[4], color, thickness, RenderAPI);
-	DrawLine(vertices[6], vertices[7], color, thickness, RenderAPI);
-	DrawLine(vertices[0], vertices[1], color, thickness, RenderAPI);
-	DrawLine(vertices[3], vertices[2], color, thickness, RenderAPI);
-	DrawLine(vertices[0], vertices[5], color, thickness, RenderAPI);
-	DrawLine(vertices[1], vertices[4], color, thickness, RenderAPI);
-	DrawLine(vertices[3], vertices[6], color, thickness, RenderAPI);
-	DrawLine(vertices[2], vertices[7], color, thickness, RenderAPI);
-	DrawLine(vertices[4], vertices[7], color, thickness, RenderAPI);
-	DrawLine(vertices[1], vertices[2], color, thickness, RenderAPI);
-	DrawLine(vertices[5], vertices[6], color, thickness, RenderAPI);
-	DrawLine(vertices[0], vertices[3], color, thickness, RenderAPI);
-}
-
-
 
 TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box,FBox _centralBox)
 {
@@ -196,10 +165,10 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 	int relI = 0;
 	int relJ = 0;
 	int relK = 0;
-	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X))
+	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X / Properties->subdivisionCount.X))
 	{
 		relI++;
-		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y))
+		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y / Properties->subdivisionCount.Y))
 		{
 			relJ++;
 			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Z / Properties->subdivisionCount.Z))
@@ -260,28 +229,6 @@ void UPrimitiveShapeRenderer::UpdateTool()
 		UpdateBoxSubdivisions();
 		SetRandomSubdivisionColors();
 	}
-}
-
-void UPrimitiveShapeRenderer::DrawLine(FVector start, FVector end, IToolsContextRenderAPI* RenderAPI)
-{
-	DrawLine(start, end, FColor::Red, 2.0f, RenderAPI);
-}
-
-void UPrimitiveShapeRenderer::DrawLine(FVector start, FVector end, FColor color, IToolsContextRenderAPI* RenderAPI)
-{
-	DrawLine(start, end, color, 2.0f, RenderAPI);
-}
-
-void UPrimitiveShapeRenderer::DrawLine(FVector start, FVector end, FColor color, float thickness, IToolsContextRenderAPI* RenderAPI)
-{
-	//From the InteractiveTool demo
-
-	auto PDI = RenderAPI->GetPrimitiveDrawInterface();
-	// draw a thin line that shows through objects
-	PDI->DrawLine(start, end, color, SDPG_Foreground, thickness, 0.0f, true);
-	// draw a thicker line that is depth-tested
-	PDI->DrawLine(start, end, color, SDPG_World, thickness, 0.0f, true);
-
 }
 
 UPrimitiveShapeRendererProperties::UPrimitiveShapeRendererProperties()
@@ -415,25 +362,28 @@ UEnhancedBox::UEnhancedBox(const FVector& origin,const FVector& extent,float _ro
 	box = FBox::BuildAABB(origin, extent);
 	relativeLocation = _relativeLocation;
 	rotation = _rotation;
+	GenerateVertices();
 }
 
 UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent,float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox)
 {
-	UEnhancedBox(origin, extent,_rotation, _relativeLocation);
+	box = FBox::BuildAABB(origin, extent);
+	relativeLocation = _relativeLocation;
+	rotation = _rotation;
 	GenerateVertices(centralBox);
 }
 
 void UEnhancedBox::GenerateVertices(const UEnhancedBox& _centralBox)
 {
 	TArray<FVector> allPoints = TArray<FVector>();
-	allPoints.Add(_centralBox.box.Min);																// 1
-	allPoints.Add(FVector(_centralBox.box.Max.X, _centralBox.box.Min.Y, _centralBox.box.Min.Z));	// 2
-	allPoints.Add(FVector(_centralBox.box.Max.X, _centralBox.box.Max.Y, _centralBox.box.Min.Z));	// 3
-	allPoints.Add(FVector(_centralBox.box.Min.X, _centralBox.box.Max.Y, _centralBox.box.Min.Z));	// 4
-	allPoints.Add(FVector(_centralBox.box.Max.X, _centralBox.box.Min.Y, _centralBox.box.Max.Z));	// 5
-	allPoints.Add(FVector(_centralBox.box.Min.X, _centralBox.box.Min.Y, _centralBox.box.Max.Z));	// 6
-	allPoints.Add(FVector(_centralBox.box.Min.X, _centralBox.box.Max.Y, _centralBox.box.Max.Z));	// 7
-	allPoints.Add(_centralBox.box.Max);																// 8
+	allPoints.Add(box.Min);																// 1
+	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Min.Z));	// 2
+	allPoints.Add(FVector(box.Max.X, box.Max.Y, box.Min.Z));	// 3
+	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Min.Z));	// 4
+	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Max.Z));	// 5
+	allPoints.Add(FVector(box.Min.X, box.Min.Y, box.Max.Z));	// 6
+	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Max.Z));	// 7
+	allPoints.Add(box.Max);																// 8
 
 	for (int i = 0; i < allPoints.Num(); i++)
 	{
@@ -441,6 +391,27 @@ void UEnhancedBox::GenerateVertices(const UEnhancedBox& _centralBox)
 	}
 
 	vertices = allPoints;
+}
+
+void UEnhancedBox::GenerateVertices()
+{
+	TArray<FVector> allPoints = TArray<FVector>();
+	allPoints.Add(box.Min);										// 1
+	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Min.Z));	// 2
+	allPoints.Add(FVector(box.Max.X, box.Max.Y, box.Min.Z));	// 3
+	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Min.Z));	// 4
+	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Max.Z));	// 5
+	allPoints.Add(FVector(box.Min.X, box.Min.Y, box.Max.Z));	// 6
+	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Max.Z));	// 7
+	allPoints.Add(box.Max);										// 8
+
+	for (int i = 0; i < allPoints.Num(); i++)
+	{
+		allPoints[i] = RotateBox(box.GetCenter(), allPoints[i], rotation * UKismetMathLibrary::GetPI() / 180.f);
+	}
+
+	vertices = allPoints;
+
 }
 
 void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& color /*= FColor::Red*/, float thickness /*= 2.f*/)

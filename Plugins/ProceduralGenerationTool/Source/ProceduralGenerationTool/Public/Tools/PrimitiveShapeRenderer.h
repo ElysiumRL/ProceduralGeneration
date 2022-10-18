@@ -124,6 +124,8 @@ public:
 
 	//Generates all the vertices of the Box
 	void GenerateVertices(const UEnhancedBox& _centralBox);
+	
+	void GenerateVertices();
 
 	void DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& color = FColor::Red, float thickness = 2.f);
 	
@@ -191,17 +193,5 @@ protected:
 
 	void UpdateTool();
 	
-	void DrawLine(FVector start, FVector end, IToolsContextRenderAPI* RenderAPI);
-
-	void DrawLine(FVector start, FVector end, FColor color, IToolsContextRenderAPI* RenderAPI);
-
-	void DrawLine(FVector start, FVector end, FColor color, float thickness, IToolsContextRenderAPI* RenderAPI);
-	
-	void DrawBox(TArray<FVector> vertices, IToolsContextRenderAPI* RenderAPI);
-	
-	void DrawBox(TArray<FVector> vertices, FColor color, IToolsContextRenderAPI* RenderAPI);
-	
-	void DrawBox(TArray<FVector> vertices, FColor color, float thickness, IToolsContextRenderAPI* RenderAPI);
-
 	TArray<FVector> GetAllBoxVertices(FBox box, FBox _centralBox);
 };
