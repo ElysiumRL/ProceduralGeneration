@@ -93,9 +93,15 @@ public:
 
 	void InitializeDataTable();
 
+	UFUNCTION(CallInEditor,Category = "_ControlPanel")
+	void StartGeneration();
+	
+	UPrimitiveShapeRenderer* tool;
+
 private:
 
 	UDataTable* propertiesAsTable;
+
 
 };
 
@@ -194,4 +200,12 @@ protected:
 	void UpdateTool();
 	
 	TArray<FVector> GetAllBoxVertices(FBox box, FBox _centralBox);
+
+
+	//////////////////////////////////////////////////////////////////////////
+public:
+
+	void StartProceduralGeneration();
+
+
 };

@@ -61,8 +61,8 @@ void UProceduralGenerationToolEditorMode::Enter()
 	////////////////////////////////////////////////////////////////////////// 
 	const FProceduralGenerationToolEditorModeCommands& SampleToolCommands = FProceduralGenerationToolEditorModeCommands::Get();
 
-	RegisterTool(SampleToolCommands.SimpleTool, SimpleToolName, NewObject<UProceduralGenerationToolSimpleToolBuilder>(this));
-	RegisterTool(SampleToolCommands.InteractiveTool, InteractiveToolName, NewObject<UProceduralGenerationToolInteractiveToolBuilder>(this));
+	//RegisterTool(SampleToolCommands.SimpleTool, SimpleToolName, NewObject<UProceduralGenerationToolSimpleToolBuilder>(this));
+	//RegisterTool(SampleToolCommands.InteractiveTool, InteractiveToolName, NewObject<UProceduralGenerationToolInteractiveToolBuilder>(this));
 	RegisterTool(SampleToolCommands.PrimitiveShapeRenderer, BoxToolName, NewObject<UPrimitiveShapeRendererToolBuilder>(this));
 	// active tool type is not relevant here, we just set to default
 	GetToolManager()->SelectActiveToolType(EToolSide::Left, SimpleToolName);

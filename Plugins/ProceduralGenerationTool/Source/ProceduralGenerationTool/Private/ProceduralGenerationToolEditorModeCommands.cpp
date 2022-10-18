@@ -18,13 +18,13 @@ void FProceduralGenerationToolEditorModeCommands::RegisterCommands()
 {
 	TArray <TSharedPtr<FUICommandInfo>>& ToolCommands = Commands.FindOrAdd(NAME_Default);
 
-	UI_COMMAND(SimpleTool, "Show Actor Info", "Opens message box with info about a clicked actor", EUserInterfaceActionType::Button, FInputChord());
-	ToolCommands.Add(SimpleTool);
-
-	UI_COMMAND(InteractiveTool, "Measure Distance", "Measures distance between 2 points (click to set origin, shift-click to set end point)", EUserInterfaceActionType::ToggleButton, FInputChord());
-	ToolCommands.Add(InteractiveTool);
+	//UI_COMMAND(SimpleTool, "Show Actor Info", "Opens message box with info about a clicked actor", EUserInterfaceActionType::Button, FInputChord());
+	//ToolCommands.Add(SimpleTool);
 	
-	UI_COMMAND(PrimitiveShapeRenderer, "Draw Shape", "Draws a Primitive shape in the world", EUserInterfaceActionType::ToggleButton, FInputChord());
+	//UI_COMMAND(InteractiveTool, "Measure Distance", "Measures distance between 2 points (click to set origin, shift-click to set end point)", EUserInterfaceActionType::ToggleButton, FInputChord());
+	//ToolCommands.Add(InteractiveTool);
+	
+	UI_COMMAND(PrimitiveShapeRenderer, "Generate", "Generates the procedural interior", EUserInterfaceActionType::RadioButton, FInputChord());
 	ToolCommands.Add(PrimitiveShapeRenderer);
 }
 

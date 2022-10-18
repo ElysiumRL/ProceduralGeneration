@@ -27,6 +27,7 @@ void UPrimitiveShapeRenderer::Setup()
 	USingleClickTool::Setup();
 
 	Properties = NewObject<UPrimitiveShapeRendererProperties>(this);
+	Properties->tool = this;
 	AddToolPropertySource(Properties);
 
 	centralBox.box.Init();
@@ -88,6 +89,11 @@ TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box,FBox _centr
 }
 
 
+void UPrimitiveShapeRenderer::StartProceduralGeneration()
+{
+
+}
+
 void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty* Property)
 {
 	FString propertyName = Property->GetFName().ToString();
@@ -96,19 +102,7 @@ void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty
 	{
 		SetRandomSubdivisionColors();
 	}
-	//UpdateBoundingBox();
-	//if (Properties->splitBox)
-	//{
-	//	UpdateBoxSubdivisions();
-	//
-	//	if (propertyName == TEXT("modifySubdivisionColor") ||
-	//		propertyName == TEXT("randomSubdivisionColor") ||
-	//		propertyName == TEXT("subdivisionCount"))
-	//	{
-	//		UpdateBoxSubdivisions();
-	//		SetRandomSubdivisionColors();
-	//	}
-	//}
+
 	if (Properties->reload)
 	{
 		UpdateTool();
@@ -143,7 +137,6 @@ void UPrimitiveShapeRenderer::SelectUpdateMethod()
 
 void UPrimitiveShapeRenderer::UpdateBoundingBox()
 {
-	//centralBox.box = FBox::BuildAABB(Properties->boxTransform, Properties->boxExtent);
 	centralBox = UEnhancedBox(Properties->boxTransform, Properties->boxExtent, Properties->rotation, FIntVector(0, 0, 0));
 }
 
@@ -361,6 +354,16 @@ void UPrimitiveShapeRendererProperties::InitializeDataTable()
 		UE_LOG(LogShapeRenderer, Warning, TEXT("Property Data Table not found !"));
 	}
 
+}
+
+
+void UPrimitiveShapeRendererProperties::StartGeneration()
+{
+	if (tool == nullptr)
+	{
+		UE_LOG(LogShapeRenderer, Error, TEXT("Can't start Generation : Tool not found!"));
+	}
+	tool->StartProceduralGeneration();
 }
 
 UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
