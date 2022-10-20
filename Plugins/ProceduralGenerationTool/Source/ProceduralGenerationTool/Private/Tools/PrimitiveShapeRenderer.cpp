@@ -12,6 +12,12 @@
 
 DEFINE_LOG_CATEGORY(LogShapeRenderer);
 
+UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
+{
+	UPrimitiveShapeRenderer* NewTool = NewObject<UPrimitiveShapeRenderer>(SceneState.ToolManager);
+	NewTool->SetWorld(SceneState.World);
+	return NewTool;
+}
 
 #pragma region PrimitiveShapeRenderer
 
@@ -240,7 +246,9 @@ void UPrimitiveShapeRenderer::UpdateTool()
 }
 
 #pragma endregion PrimitiveShapeRenderer
+
 #pragma region Properties
+
 UPrimitiveShapeRendererProperties::UPrimitiveShapeRendererProperties()
 {
 	InitializeDataTable();
@@ -371,14 +379,9 @@ void UPrimitiveShapeRendererProperties::StartGeneration()
 }
 
 #pragma endregion Properties
-UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
-{
-	UPrimitiveShapeRenderer* NewTool = NewObject<UPrimitiveShapeRenderer>(SceneState.ToolManager);
-	NewTool->SetWorld(SceneState.World);
-	return NewTool;
-}
 
 #pragma region EnhancedBox
+
 UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation)
 {
 	box = FBox::BuildAABB(origin, extent);
