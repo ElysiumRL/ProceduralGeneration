@@ -13,6 +13,8 @@
 DEFINE_LOG_CATEGORY(LogShapeRenderer);
 
 
+#pragma region PrimitiveShapeRenderer
+
 UPrimitiveShapeRenderer::UPrimitiveShapeRenderer()
 {
 }
@@ -67,7 +69,7 @@ void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 	}
 }
 
-TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box,FBox _centralBox)
+TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box, FBox _centralBox)
 {
 	TArray<FVector> allPoints = TArray<FVector>();
 	allPoints.Add(_Box.Min);										// 1
@@ -203,7 +205,7 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 
 void UPrimitiveShapeRenderer::SetRandomSubdivisionColors()
 {
-	randomSubdivisionBoxColor.SetNum(subdivisionBoxes.Num(),true);
+	randomSubdivisionBoxColor.SetNum(subdivisionBoxes.Num(), true);
 	for (int i = 0; i < randomSubdivisionBoxColor.Num(); i++)
 	{
 		randomSubdivisionBoxColor[i] = FColor::MakeRandomColor();
@@ -237,6 +239,8 @@ void UPrimitiveShapeRenderer::UpdateTool()
 	}
 }
 
+#pragma endregion PrimitiveShapeRenderer
+#pragma region Properties
 UPrimitiveShapeRendererProperties::UPrimitiveShapeRendererProperties()
 {
 	InitializeDataTable();
@@ -263,7 +267,7 @@ void UPrimitiveShapeRendererProperties::ExportProperties()
 	table.subdivisionColor = subdivisionColor;
 	table.subdivisionCount = subdivisionCount;
 	table.subdivisionThickness = subdivisionThickness;
-	
+
 	propertiesAsTable->AddRow(TEXT("Settings"), table);
 	propertiesAsTable->MarkPackageDirty();
 
@@ -310,7 +314,7 @@ bool UPrimitiveShapeRendererProperties::ImportProperties()
 void UPrimitiveShapeRendererProperties::DefaultProperties()
 {
 	primitiveShape = EPrimitiveShapeType::RectangleFilled;
-	
+
 	renderBox = true;
 	boxTransform = FVector::Zero();
 	rotation = 0.0f;
@@ -366,6 +370,7 @@ void UPrimitiveShapeRendererProperties::StartGeneration()
 	tool->StartProceduralGeneration();
 }
 
+#pragma endregion Properties
 UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
 {
 	UPrimitiveShapeRenderer* NewTool = NewObject<UPrimitiveShapeRenderer>(SceneState.ToolManager);
@@ -373,7 +378,8 @@ UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuild
 	return NewTool;
 }
 
-UEnhancedBox::UEnhancedBox(const FVector& origin,const FVector& extent,float _rotation,const FIntVector& _relativeLocation)
+#pragma region EnhancedBox
+UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation)
 {
 	box = FBox::BuildAABB(origin, extent);
 	relativeLocation = _relativeLocation;
@@ -381,7 +387,7 @@ UEnhancedBox::UEnhancedBox(const FVector& origin,const FVector& extent,float _ro
 	GenerateVertices();
 }
 
-UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent,float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox)
+UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox)
 {
 	box = FBox::BuildAABB(origin, extent);
 	relativeLocation = _relativeLocation;
@@ -392,14 +398,14 @@ UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent,float _r
 void UEnhancedBox::GenerateVertices(const UEnhancedBox& _centralBox)
 {
 	TArray<FVector> allPoints = TArray<FVector>();
-	allPoints.Add(box.Min);																// 1
+	allPoints.Add(box.Min);										// 1
 	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Min.Z));	// 2
 	allPoints.Add(FVector(box.Max.X, box.Max.Y, box.Min.Z));	// 3
 	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Min.Z));	// 4
 	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Max.Z));	// 5
 	allPoints.Add(FVector(box.Min.X, box.Min.Y, box.Max.Z));	// 6
 	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Max.Z));	// 7
-	allPoints.Add(box.Max);																// 8
+	allPoints.Add(box.Max);										// 8
 
 	for (int i = 0; i < allPoints.Num(); i++)
 	{
@@ -476,3 +482,4 @@ FVector UEnhancedBox::RotateBox(const FVector& boxOrigin, FVector fromLocation, 
 	return FVector(fromLocation.X, fromLocation.Y, fromLocation.Z);
 
 }
+#pragma endregion EnhancedBox
