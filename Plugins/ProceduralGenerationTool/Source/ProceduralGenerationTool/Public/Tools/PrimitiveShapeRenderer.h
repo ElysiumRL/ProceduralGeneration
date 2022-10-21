@@ -128,17 +128,37 @@ public:
 
 	float rotation;
 
+	TArray<UEnhancedBox> subdivisions;
+
+	FColor color;
+
+
 	//Generates all the vertices of the Box
 	void GenerateVertices(const UEnhancedBox& _centralBox);
-	
+
 	void GenerateVertices();
 
-	void DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& color = FColor::Red, float thickness = 2.f);
-	
-	void DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& color = FColor::Red, float thickness = 2.f);
+	void DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _color = FColor::Red, float thickness = 2.f);
+
+	void DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& _color = FColor::Red, float thickness = 2.f);
 
 	FVector RotateBox(const FVector& boxOrigin, FVector fromLocation, float angle);
 
+	FORCEINLINE float Area2D() { return extent.X * extent.Y; }
+
+	FORCEINLINE float Area3D() { return extent.X * extent.Y * extent.Z; }
+
+	FORCEINLINE float Perimeter2D() { return 2 * extent.X + 2 * extent.Y; }
+
+	FORCEINLINE float Width() { return extent.X; }
+
+	FORCEINLINE float Height() { return extent.Y; }
+
+	FORCEINLINE FVector TopLeft() { return box.Min; }
+
+	FORCEINLINE FVector TopRight() { return FVector(box.Min.X, box.Max.Y, box.Min.Z); }
+
+	FORCEINLINE FString ToString() { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }
 };
 
 
@@ -201,11 +221,34 @@ protected:
 	
 	TArray<FVector> GetAllBoxVertices(FBox box, FBox _centralBox);
 
-
 	//////////////////////////////////////////////////////////////////////////
+
 public:
 
 	void StartProceduralGeneration();
+};
+
+/**
+ *
+ */
+
+UENUM(BlueprintType)
+enum class ESubdivisionType : uint8
+{
+	Horizontal = 0,
+	Vertical = 1
+};
 
 
+class PROCEDURALGENERATIONTOOL_API GenerationUtilities
+{
+public:
+	GenerationUtilities();
+	~GenerationUtilities();
+
+	static TArray<UEnhancedBox> results;
+
+	static void Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, int iterations, ESubdivisionType subdivisionType);
+
+	static TArray<UEnhancedBox> Split(UEnhancedBox bounds,UEnhancedBox boxToSubdivide,float splitLocationFromAxis, ESubdivisionType subdivisionType);
 };

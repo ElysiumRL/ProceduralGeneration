@@ -73,6 +73,12 @@ void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 			}
 		}
 	}
+
+	for (int i = 0; i < GenerationUtilities::results.Num(); i++)
+	{
+		GenerationUtilities::results[i].DrawBox(RenderAPI, GenerationUtilities::results[i].color, 5.f);
+	}
+
 }
 
 TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box, FBox _centralBox)
@@ -99,6 +105,21 @@ TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box, FBox _cent
 
 void UPrimitiveShapeRenderer::StartProceduralGeneration()
 {
+	GenerationUtilities::results.Empty();
+
+	GenerationUtilities::Subdivide(centralBox, centralBox, 5, ESubdivisionType::Vertical);
+
+	UE_LOG(LogShapeRenderer, Warning, TEXT("Generation Done"));
+
+
+	for (int i = 0; i < GenerationUtilities::results.Num(); i++)
+	{
+		UE_LOG(LogShapeRenderer, Warning, TEXT("%s"), *GenerationUtilities::results[i].ToString());
+
+	}
+
+
+
 
 }
 
@@ -384,7 +405,10 @@ void UPrimitiveShapeRendererProperties::StartGeneration()
 
 UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation)
 {
+	subdivisions = TArray<UEnhancedBox>();
 	box = FBox::BuildAABB(origin, extent);
+	this->origin = origin;
+	this->extent = extent;
 	relativeLocation = _relativeLocation;
 	rotation = _rotation;
 	GenerateVertices();
@@ -392,8 +416,11 @@ UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _
 
 UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox)
 {
+	subdivisions = TArray<UEnhancedBox>();
 	box = FBox::BuildAABB(origin, extent);
 	relativeLocation = _relativeLocation;
+	this->origin = origin;
+	this->extent = extent;
 	rotation = _rotation;
 	GenerateVertices(centralBox);
 }
@@ -439,32 +466,32 @@ void UEnhancedBox::GenerateVertices()
 
 }
 
-void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& color /*= FColor::Red*/, float thickness /*= 2.f*/)
+void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _color /*= FColor::Red*/, float thickness /*= 2.f*/)
 {
 	// Vertices must be precisely at in the format of GetAllBoxVertices() in order to work
-	DrawLine(RenderAPI, vertices[5], vertices[4], color, thickness);
-	DrawLine(RenderAPI, vertices[6], vertices[7], color, thickness);
-	DrawLine(RenderAPI, vertices[0], vertices[1], color, thickness);
-	DrawLine(RenderAPI, vertices[3], vertices[2], color, thickness);
-	DrawLine(RenderAPI, vertices[0], vertices[5], color, thickness);
-	DrawLine(RenderAPI, vertices[1], vertices[4], color, thickness);
-	DrawLine(RenderAPI, vertices[3], vertices[6], color, thickness);
-	DrawLine(RenderAPI, vertices[2], vertices[7], color, thickness);
-	DrawLine(RenderAPI, vertices[4], vertices[7], color, thickness);
-	DrawLine(RenderAPI, vertices[1], vertices[2], color, thickness);
-	DrawLine(RenderAPI, vertices[5], vertices[6], color, thickness);
-	DrawLine(RenderAPI, vertices[0], vertices[3], color, thickness);
+	DrawLine(RenderAPI, vertices[5], vertices[4], _color, thickness);
+	DrawLine(RenderAPI, vertices[6], vertices[7], _color, thickness);
+	DrawLine(RenderAPI, vertices[0], vertices[1], _color, thickness);
+	DrawLine(RenderAPI, vertices[3], vertices[2], _color, thickness);
+	DrawLine(RenderAPI, vertices[0], vertices[5], _color, thickness);
+	DrawLine(RenderAPI, vertices[1], vertices[4], _color, thickness);
+	DrawLine(RenderAPI, vertices[3], vertices[6], _color, thickness);
+	DrawLine(RenderAPI, vertices[2], vertices[7], _color, thickness);
+	DrawLine(RenderAPI, vertices[4], vertices[7], _color, thickness);
+	DrawLine(RenderAPI, vertices[1], vertices[2], _color, thickness);
+	DrawLine(RenderAPI, vertices[5], vertices[6], _color, thickness);
+	DrawLine(RenderAPI, vertices[0], vertices[3], _color, thickness);
 
 }
 
-void UEnhancedBox::DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& color /*= FColor::Red*/, float thickness /*= 2.f*/)
+void UEnhancedBox::DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& _color /*= FColor::Red*/, float thickness /*= 2.f*/)
 {
 	//From the InteractiveTool demo
 	auto PDI = RenderAPI->GetPrimitiveDrawInterface();
 	// draw a thin line that shows through objects
-	PDI->DrawLine(start, end, color, SDPG_Foreground, thickness, 0.0f, true);
+	PDI->DrawLine(start, end, _color, SDPG_Foreground, thickness, 0.0f, true);
 	// draw a thicker line that is depth-tested
-	PDI->DrawLine(start, end, color, SDPG_World, thickness, 0.0f, true);
+	PDI->DrawLine(start, end, _color, SDPG_World, thickness, 0.0f, true);
 
 }
 
@@ -485,4 +512,216 @@ FVector UEnhancedBox::RotateBox(const FVector& boxOrigin, FVector fromLocation, 
 	return FVector(fromLocation.X, fromLocation.Y, fromLocation.Z);
 
 }
+
 #pragma endregion EnhancedBox
+
+
+
+GenerationUtilities::GenerationUtilities()
+{
+}
+
+GenerationUtilities::~GenerationUtilities()
+{
+
+}
+
+TArray<UEnhancedBox> GenerationUtilities::results = TArray<UEnhancedBox>();
+
+void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, int iterations, ESubdivisionType subdivisionType)
+{
+	// exit conditions
+	//boxToSubdivide.Area();
+
+	int minSubdivisionWidth = 0.2f * boxToSubdivide.Width();
+	int maxSubdivisionWidth = 0.5f * boxToSubdivide.Width();
+	int minSubdivisionHeight = 0.2f * boxToSubdivide.Height();
+	int maxSubdivisionHeight = 0.5f * boxToSubdivide.Height();
+
+	iterations--;
+
+	if (iterations == 0 || UKismetMathLibrary::RandomFloat() <= 0.25f)
+	{
+		return;
+	}
+
+	//If the building is touching a horizontal edge, vertical subdivisions
+	//will not cut anything off. If the building is touching both
+	//vertical edges, one subdivision can be made.
+	
+	if (subdivisionType == ESubdivisionType::Vertical)
+	//if (!(boxToSubdivide.TopLeft().Y == bounds.TopLeft().Y) || boxToSubdivide.TopLeft().Y + boxToSubdivide.Height() == bounds.Height())
+	{
+		//if (bounds.Width() == boxToSubdivide.Width())
+		{
+			TArray<UEnhancedBox> subdivisions =	GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, bounds.Width() - minSubdivisionWidth) / bounds.Width(), ESubdivisionType::Vertical);
+
+			for (int i = 0; i < subdivisions.Num(); i++)
+			{
+				GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, ESubdivisionType::Horizontal);
+			}
+		}
+		return;
+	}
+	else
+	{
+		TArray<UEnhancedBox> subdivisions = GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(maxSubdivisionHeight, bounds.Height() - maxSubdivisionHeight) / bounds.Height(), ESubdivisionType::Horizontal);
+
+		for (int i = 0; i < subdivisions.Num(); i++)
+		{
+			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, ESubdivisionType::Vertical);
+		}
+		return;
+	}
+
+
+	//if not (b.position.y == 0 or (b.position.y + b.height) == cityBlock.height) {
+	//	if b.width == cityBlock.width{
+	//		// do one subdivision and recurse
+	//		splitBuilding(vertical, randomDouble(minSubdivisionWidth, cityBlock.width - minSubdivisionWidth)
+	//		for subBuilding in b.subBuildings {
+	//		  subdivide(horizontal, subBuilding)
+	//		}
+	//		return
+	//			}
+	//	else { return }
+	//}
+
+	// get # subdivisions
+	//minSubdivisionWidth = minSize / b.height // ensures that subdivisionWidth * b.height <= minSize
+	//	maxSubdivisions = floor(b.width / minSubdivisionWidth)
+	//	subdivisions = randomInt(2, maxSubdivisions)
+	//
+	//	// get subdivision widths
+	//	widths[] // This will be the widths of our subdivided buildings
+	//	freeWidth = b.width - minSubdivisionWidth * subdivisions
+	//	weights[] // randomly assigned weight for free space
+	//	sumWeight
+	//
+	//	for i = 1 to subdivisions{
+	//	  randWeight = random()
+	//	  weights[i] = randWeight
+	//	  sumWeight += randWeight
+	//	}
+	//
+	//		for i = 1 to subdivisions{
+	//		  widths[i] = minSubdivisionWidth + (weights[i] / sumWeight) * freeWidth
+	//		}
+	//
+	//			// transform individual widths into coordinates for building split
+	//			cumulativeWidth = 0
+	//
+	//			for i = 1 to(subdivisions - 1) {
+	//				cumulativeWidth += widths[i]
+	//					splitBuilding(vertical, cumulativeWidth)
+	//			}
+	//
+	//// recurse
+	//for subBuilding in b.subBuildings{
+	//  subdivide(horizontal, subBuilding)
+	//}
+}
+
+TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, float splitLocationFromAxis, ESubdivisionType subdivisionType)
+{
+	FVector offset = FVector(10, 10, 0);
+
+	TArray<UEnhancedBox> subdivisions;
+
+	//Horizontal
+	if (subdivisionType != ESubdivisionType::Horizontal) 
+	{
+		FVector box1Center = FVector(
+			boxToSubdivide.TopRight().X + (boxToSubdivide.Width() * splitLocationFromAxis),
+			boxToSubdivide.box.GetCenter().Y,
+			bounds.box.GetCenter().Z) + offset;
+
+		UE_LOG(LogTemp, Error, TEXT("Box 1 Origin : %s"), *box1Center.ToString());
+
+
+		FVector box1Extends = FVector(
+			boxToSubdivide.extent.X * splitLocationFromAxis,
+			boxToSubdivide.extent.Y,
+			boxToSubdivide.extent.Z);
+		
+		UE_LOG(LogTemp, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
+
+		UEnhancedBox box1 = UEnhancedBox(box1Center, box1Extends);
+
+		FVector box2Center = FVector(
+			boxToSubdivide.TopLeft().X + boxToSubdivide.Width() + (boxToSubdivide.Width() * splitLocationFromAxis),
+			boxToSubdivide.box.GetCenter().Y,
+			bounds.box.GetCenter().Z) + offset;
+		
+		UE_LOG(LogTemp, Error, TEXT("Box 2 Origin : %s"), *box2Center.ToString());
+
+		FVector box2Extends = FVector(
+			boxToSubdivide.extent.X * (1.0f - splitLocationFromAxis),
+			boxToSubdivide.extent.Y,
+			boxToSubdivide.extent.Z);
+		
+		UE_LOG(LogTemp, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
+
+		UEnhancedBox box2 = UEnhancedBox(box2Center, box2Extends);
+		
+		box1.color = FColor::MakeRandomColor();
+		box2.color = FColor::MakeRandomColor();
+
+		GenerationUtilities::results.Add(box1);
+		
+		GenerationUtilities::results.Add(box2);
+		
+		subdivisions.Add(box1);
+		
+		subdivisions.Add(box2);
+
+	}
+	else //Vertical
+	{
+		FVector box1Center = FVector(
+			boxToSubdivide.box.GetCenter().X,
+			boxToSubdivide.TopRight().Y - splitLocationFromAxis * (boxToSubdivide.Height()),
+			bounds.box.GetCenter().Z) + offset;
+		
+		UE_LOG(LogTemp, Error, TEXT("Box 1 Origin : %s"), *box1Center.ToString());
+
+		FVector box1Extends = FVector(
+			boxToSubdivide.extent.X,
+			boxToSubdivide.extent.Y * splitLocationFromAxis,
+			boxToSubdivide.extent.Z);
+		
+		UE_LOG(LogTemp, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
+
+		UEnhancedBox box1 = UEnhancedBox(box1Center, box1Extends);
+
+		FVector box2Center = FVector(
+			boxToSubdivide.box.GetCenter().X,
+			boxToSubdivide.TopLeft().Y + boxToSubdivide.Height() - (boxToSubdivide.Height() * splitLocationFromAxis),
+			bounds.box.GetCenter().Z) + offset;
+		
+		UE_LOG(LogTemp, Error, TEXT("Box 2 Origin : %s"), *box2Center.ToString());
+
+		FVector box2Extends = FVector(
+			boxToSubdivide.extent.X,
+			boxToSubdivide.extent.Y * (1.0f - splitLocationFromAxis),
+			boxToSubdivide.extent.Z);
+
+		UE_LOG(LogTemp, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
+
+		UEnhancedBox box2 = UEnhancedBox(box2Center, box2Extends);
+
+		box1.color = FColor::MakeRandomColor();
+		box2.color = FColor::MakeRandomColor();
+
+		GenerationUtilities::results.Add(box1);
+		
+		GenerationUtilities::results.Add(box2);
+		
+		subdivisions.Add(box1);
+		
+		subdivisions.Add(box2);
+	}
+
+	return subdivisions;
+
+}
