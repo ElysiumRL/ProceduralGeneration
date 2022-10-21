@@ -107,7 +107,8 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 {
 	GenerationUtilities::results.Empty();
 
-	GenerationUtilities::Subdivide(centralBox, centralBox, 5, ESubdivisionType::Vertical);
+
+	GenerationUtilities::Subdivide(centralBox, centralBox, 4, GenerationUtilities::RandomSubdivision());
 
 	UE_LOG(LogShapeRenderer, Warning, TEXT("Generation Done"));
 
@@ -530,96 +531,42 @@ TArray<UEnhancedBox> GenerationUtilities::results = TArray<UEnhancedBox>();
 
 void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, int iterations, ESubdivisionType subdivisionType)
 {
-	// exit conditions
-	//boxToSubdivide.Area();
 
-	int minSubdivisionWidth = 0.2f * boxToSubdivide.Width();
-	int maxSubdivisionWidth = 0.5f * boxToSubdivide.Width();
-	int minSubdivisionHeight = 0.2f * boxToSubdivide.Height();
-	int maxSubdivisionHeight = 0.5f * boxToSubdivide.Height();
+	int minSubdivisionWidth = 0.3f * boxToSubdivide.Width();
+	int minSubdivisionHeight = 0.3f * boxToSubdivide.Height();
+	
+	int maxSubdivisionWidth = 0.7f * boxToSubdivide.Width();
+	int maxSubdivisionHeight = 0.7f * boxToSubdivide.Height();
 
 	iterations--;
-
-	if (iterations == 0 || UKismetMathLibrary::RandomFloat() <= 0.25f)
-	{
-		return;
-	}
-
-	//If the building is touching a horizontal edge, vertical subdivisions
-	//will not cut anything off. If the building is touching both
-	//vertical edges, one subdivision can be made.
 	
-	if (subdivisionType == ESubdivisionType::Vertical)
-	//if (!(boxToSubdivide.TopLeft().Y == bounds.TopLeft().Y) || boxToSubdivide.TopLeft().Y + boxToSubdivide.Height() == bounds.Height())
+	//Exit Condition
+	if (iterations == 0 || (iterations -2 >= 0 && UKismetMathLibrary::RandomFloat() <= 0.25f))
 	{
-		//if (bounds.Width() == boxToSubdivide.Width())
-		{
-			TArray<UEnhancedBox> subdivisions =	GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, bounds.Width() - minSubdivisionWidth) / bounds.Width(), ESubdivisionType::Vertical);
-
-			for (int i = 0; i < subdivisions.Num(); i++)
-			{
-				GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, ESubdivisionType::Horizontal);
-			}
-		}
 		return;
 	}
-	else
+
+
+	//Recursive Subdivision
+
+	if (subdivisionType == ESubdivisionType::Vertical)
 	{
-		TArray<UEnhancedBox> subdivisions = GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(maxSubdivisionHeight, bounds.Height() - maxSubdivisionHeight) / bounds.Height(), ESubdivisionType::Horizontal);
+		TArray<UEnhancedBox> subdivisions = GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, maxSubdivisionWidth) / bounds.Width(), ESubdivisionType::Vertical);
 
 		for (int i = 0; i < subdivisions.Num(); i++)
 		{
-			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, ESubdivisionType::Vertical);
+			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision());
 		}
-		return;
 	}
+	else
+	{
+		TArray<UEnhancedBox> subdivisions = GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionHeight, maxSubdivisionHeight) / bounds.Height(), ESubdivisionType::Horizontal);
 
-
-	//if not (b.position.y == 0 or (b.position.y + b.height) == cityBlock.height) {
-	//	if b.width == cityBlock.width{
-	//		// do one subdivision and recurse
-	//		splitBuilding(vertical, randomDouble(minSubdivisionWidth, cityBlock.width - minSubdivisionWidth)
-	//		for subBuilding in b.subBuildings {
-	//		  subdivide(horizontal, subBuilding)
-	//		}
-	//		return
-	//			}
-	//	else { return }
-	//}
-
-	// get # subdivisions
-	//minSubdivisionWidth = minSize / b.height // ensures that subdivisionWidth * b.height <= minSize
-	//	maxSubdivisions = floor(b.width / minSubdivisionWidth)
-	//	subdivisions = randomInt(2, maxSubdivisions)
-	//
-	//	// get subdivision widths
-	//	widths[] // This will be the widths of our subdivided buildings
-	//	freeWidth = b.width - minSubdivisionWidth * subdivisions
-	//	weights[] // randomly assigned weight for free space
-	//	sumWeight
-	//
-	//	for i = 1 to subdivisions{
-	//	  randWeight = random()
-	//	  weights[i] = randWeight
-	//	  sumWeight += randWeight
-	//	}
-	//
-	//		for i = 1 to subdivisions{
-	//		  widths[i] = minSubdivisionWidth + (weights[i] / sumWeight) * freeWidth
-	//		}
-	//
-	//			// transform individual widths into coordinates for building split
-	//			cumulativeWidth = 0
-	//
-	//			for i = 1 to(subdivisions - 1) {
-	//				cumulativeWidth += widths[i]
-	//					splitBuilding(vertical, cumulativeWidth)
-	//			}
-	//
-	//// recurse
-	//for subBuilding in b.subBuildings{
-	//  subdivide(horizontal, subBuilding)
-	//}
+		for (int i = 0; i < subdivisions.Num(); i++)
+		{
+			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision());
+		}
+	}
 }
 
 TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, float splitLocationFromAxis, ESubdivisionType subdivisionType)

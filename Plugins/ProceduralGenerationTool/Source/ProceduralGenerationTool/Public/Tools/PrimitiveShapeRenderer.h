@@ -246,6 +246,8 @@ public:
 	GenerationUtilities();
 	~GenerationUtilities();
 
+	inline static ESubdivisionType RandomSubdivision() { return static_cast<ESubdivisionType>(FMath::RandRange(0, 1)); }
+
 	static TArray<UEnhancedBox> results;
 
 	static void Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, int iterations, ESubdivisionType subdivisionType);
