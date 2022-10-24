@@ -105,6 +105,8 @@ private:
 
 };
 
+
+
 //FBox wrapper
 class PROCEDURALGENERATIONTOOL_API UEnhancedBox
 {
@@ -131,7 +133,6 @@ public:
 	TArray<UEnhancedBox> subdivisions;
 
 	FColor color;
-
 
 	//Generates all the vertices of the Box
 	void GenerateVertices(const UEnhancedBox& _centralBox);
@@ -164,13 +165,24 @@ public:
 
 	FORCEINLINE FString ToString() { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }
 
-
-
-
-
-
 };
 
+class PROCEDURALGENERATIONTOOL_API UBoxedRoom : public UEnhancedBox
+{
+public:
+
+	UBoxedRoom() = default;
+
+	UBoxedRoom(const FVector& origin, const FVector& extent, float _rotation = 0.0f, const FIntVector& _relativeLocation = FIntVector::ZeroValue) :
+		UEnhancedBox(origin, extent, _rotation, _relativeLocation) {};
+
+	UBoxedRoom(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox) :
+		UEnhancedBox(origin, extent, _rotation, _relativeLocation, centralBox) {};
+
+	FString name;
+
+	void ConnectTo(UBoxedRoom room);
+};
 
 
 /**
@@ -263,4 +275,9 @@ public:
 	static void Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, int iterations, ESubdivisionType subdivisionType);
 
 	static TArray<UEnhancedBox> Split(UEnhancedBox bounds,UEnhancedBox boxToSubdivide,float splitLocationFromAxis, ESubdivisionType subdivisionType);
+
+	static void MergeBoxes();
+
+	static void ExportResults();
+
 };

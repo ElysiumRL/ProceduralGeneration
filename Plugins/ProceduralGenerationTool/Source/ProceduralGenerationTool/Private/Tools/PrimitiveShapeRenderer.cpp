@@ -105,19 +105,24 @@ TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box, FBox _cent
 
 void UPrimitiveShapeRenderer::StartProceduralGeneration()
 {
+	//Remove all existing boxes
 	GenerationUtilities::results.Empty();
 
-
+	//Generation
 	GenerationUtilities::Subdivide(centralBox, centralBox, 4, GenerationUtilities::RandomSubdivision());
 
-	UE_LOG(LogShapeRenderer, Warning, TEXT("Generation Done"));
+	//Logging 
+	//UE_LOG(LogShapeRenderer, Warning, TEXT("Generation Done"));
+	//
+	//for (int i = 0; i < GenerationUtilities::results.Num(); i++)
+	//{
+	//	UE_LOG(LogShapeRenderer, Warning, TEXT("%s"), *GenerationUtilities::results[i].ToString());
+	//}
 
 
-	for (int i = 0; i < GenerationUtilities::results.Num(); i++)
-	{
-		UE_LOG(LogShapeRenderer, Warning, TEXT("%s"), *GenerationUtilities::results[i].ToString());
+	UBoxedRoom room;
 
-	}
+
 
 
 
@@ -390,6 +395,9 @@ void UPrimitiveShapeRendererProperties::InitializeDataTable()
 
 }
 
+#pragma endregion Properties
+
+#pragma region Start Generation
 
 void UPrimitiveShapeRendererProperties::StartGeneration()
 {
@@ -398,9 +406,18 @@ void UPrimitiveShapeRendererProperties::StartGeneration()
 		UE_LOG(LogShapeRenderer, Error, TEXT("Can't start Generation : Tool not found!"));
 	}
 	tool->StartProceduralGeneration();
+
+	
+
+
+
+
+
+
+
 }
 
-#pragma endregion Properties
+#pragma endregion Start Generation
 
 #pragma region EnhancedBox
 
@@ -534,10 +551,7 @@ void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdi
 {
 
 	int minSubdivisionWidth = 0.3f * boxToSubdivide.Width();
-	int minSubdivisionHeight = 0.3f * boxToSubdivide.Height();
-	
 	int maxSubdivisionWidth = 0.7f * boxToSubdivide.Width();
-	int maxSubdivisionHeight = 0.7f * boxToSubdivide.Height();
 
 	iterations--;
 	
@@ -567,7 +581,7 @@ void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdi
 		}
 		**/
 
-		//Ratio
+		//Height Ratio (+ palu)
 		subdivisionType = subdivisions[i].HeightRatio() >= 1.125f ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
 		if (UKismetMathLibrary::RandomFloat() >= 0.0f)
 		{
@@ -594,7 +608,7 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 			boxToSubdivide.box.GetCenter().Y,
 			bounds.box.GetCenter().Z) + offset;
 
-		UE_LOG(LogTemp, Error, TEXT("Box 1 Origin : %s"), *box1Center.ToString());
+		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Origin : %s"), *box1Center.ToString());
 
 
 		FVector box1Extends = FVector(
@@ -602,7 +616,7 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 			boxToSubdivide.extent.Y,
 			boxToSubdivide.extent.Z);
 		
-		UE_LOG(LogTemp, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
+		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
 
 		UEnhancedBox box1 = UEnhancedBox(box1Center, box1Extends);
 
@@ -611,14 +625,14 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 			boxToSubdivide.box.GetCenter().Y,
 			bounds.box.GetCenter().Z) + offset;
 		
-		UE_LOG(LogTemp, Error, TEXT("Box 2 Origin : %s"), *box2Center.ToString());
+		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Origin : %s"), *box2Center.ToString());
 
 		FVector box2Extends = FVector(
 			boxToSubdivide.extent.X * (1.0f - splitLocationFromAxis),
 			boxToSubdivide.extent.Y,
 			boxToSubdivide.extent.Z);
 		
-		UE_LOG(LogTemp, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
+		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
 
 		UEnhancedBox box2 = UEnhancedBox(box2Center, box2Extends);
 		
@@ -641,14 +655,14 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 			boxToSubdivide.TopRight().Y - splitLocationFromAxis * (boxToSubdivide.Height()),
 			bounds.box.GetCenter().Z) + offset;
 		
-		UE_LOG(LogTemp, Error, TEXT("Box 1 Origin : %s"), *box1Center.ToString());
+		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Origin : %s"), *box1Center.ToString());
 
 		FVector box1Extends = FVector(
 			boxToSubdivide.extent.X,
 			boxToSubdivide.extent.Y * splitLocationFromAxis,
 			boxToSubdivide.extent.Z);
 		
-		UE_LOG(LogTemp, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
+		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
 
 		UEnhancedBox box1 = UEnhancedBox(box1Center, box1Extends);
 
@@ -657,26 +671,27 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 			boxToSubdivide.TopLeft().Y + boxToSubdivide.Height() - (boxToSubdivide.Height() * splitLocationFromAxis),
 			bounds.box.GetCenter().Z) + offset;
 		
-		UE_LOG(LogTemp, Error, TEXT("Box 2 Origin : %s"), *box2Center.ToString());
+		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Origin : %s"), *box2Center.ToString());
 
 		FVector box2Extends = FVector(
 			boxToSubdivide.extent.X,
 			boxToSubdivide.extent.Y * (1.0f - splitLocationFromAxis),
 			boxToSubdivide.extent.Z);
 
-		UE_LOG(LogTemp, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
+		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
 
 		UEnhancedBox box2 = UEnhancedBox(box2Center, box2Extends);
 
 		box1.color = FColor::MakeRandomColor();
+		
 		box2.color = FColor::MakeRandomColor();
 
 		GenerationUtilities::results.Add(box1);
-		
+
 		GenerationUtilities::results.Add(box2);
-		
+
 		subdivisions.Add(box1);
-		
+
 		subdivisions.Add(box2);
 	}
 
