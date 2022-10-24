@@ -520,6 +520,7 @@ FVector UEnhancedBox::RotateBox(const FVector& boxOrigin, FVector fromLocation, 
 
 GenerationUtilities::GenerationUtilities()
 {
+
 }
 
 GenerationUtilities::~GenerationUtilities()
@@ -541,7 +542,7 @@ void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdi
 	iterations--;
 	
 	//Exit Condition
-	if (iterations == 0 || (iterations -2 >= 0 && UKismetMathLibrary::RandomFloat() <= 0.25f))
+	if (iterations == 0 /*|| (iterations -2 <= 0 && UKismetMathLibrary::RandomFloat() <= 0.25f)*/)
 	{
 		return;
 	}
@@ -549,20 +550,30 @@ void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdi
 
 	//Recursive Subdivision
 
-	if (subdivisionType == ESubdivisionType::Vertical)
-	{
-		TArray<UEnhancedBox> subdivisions = GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, maxSubdivisionWidth) / bounds.Width(), ESubdivisionType::Vertical);
+	TArray<UEnhancedBox> subdivisions = GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, maxSubdivisionWidth) / bounds.Width(), subdivisionType);
 
-		for (int i = 0; i < subdivisions.Num(); i++)
+	for (int i = 0; i < subdivisions.Num(); i++)
+	{
+		//Random Version
+		/**
+		if (UKismetMathLibrary::RandomFloat() > 0.5f)
+		{
+			subdivisionType = subdivisionType == ESubdivisionType::Horizontal ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
+			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType);
+		}
+		else
 		{
 			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision());
 		}
-	}
-	else
-	{
-		TArray<UEnhancedBox> subdivisions = GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionHeight, maxSubdivisionHeight) / bounds.Height(), ESubdivisionType::Horizontal);
+		**/
 
-		for (int i = 0; i < subdivisions.Num(); i++)
+		//Ratio
+		subdivisionType = subdivisions[i].HeightRatio() >= 1.125f ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
+		if (UKismetMathLibrary::RandomFloat() >= 0.0f)
+		{
+			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType);
+		}
+		else
 		{
 			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision());
 		}
@@ -571,12 +582,12 @@ void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdi
 
 TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, float splitLocationFromAxis, ESubdivisionType subdivisionType)
 {
-	FVector offset = FVector(10, 10, 0);
+	FVector offset = FVector(0, 0, 0);
 
 	TArray<UEnhancedBox> subdivisions;
 
 	//Horizontal
-	if (subdivisionType != ESubdivisionType::Horizontal) 
+	if (subdivisionType == ESubdivisionType::Horizontal) 
 	{
 		FVector box1Center = FVector(
 			boxToSubdivide.TopRight().X + (boxToSubdivide.Width() * splitLocationFromAxis),

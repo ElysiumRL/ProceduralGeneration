@@ -154,11 +154,21 @@ public:
 
 	FORCEINLINE float Height() { return extent.Y; }
 
+	FORCEINLINE float WidthRatio() { return Height() == 0.0f ? 0.0f : Width() / Height(); }
+
+	FORCEINLINE float HeightRatio() { return Width() == 0.0f ? 0.0f : Height() / Width(); }
+
 	FORCEINLINE FVector TopLeft() { return box.Min; }
 
 	FORCEINLINE FVector TopRight() { return FVector(box.Min.X, box.Max.Y, box.Min.Z); }
 
 	FORCEINLINE FString ToString() { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }
+
+
+
+
+
+
 };
 
 
