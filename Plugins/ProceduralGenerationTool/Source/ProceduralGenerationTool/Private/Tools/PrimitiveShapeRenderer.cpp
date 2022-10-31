@@ -76,7 +76,14 @@ void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 
 	for (int i = 0; i < GenerationUtilities::results.Num(); i++)
 	{
-		GenerationUtilities::results[i].DrawBox(RenderAPI, GenerationUtilities::results[i].color, 5.f);
+		if (GenerationUtilities::results[i] != nullptr)
+		{
+			GenerationUtilities::results[i]->DrawBox(RenderAPI, GenerationUtilities::results[i]->color, 5.f);
+		}
+		else
+		{
+			UE_LOG(LogShapeRenderer, Warning, TEXT("Result is null"));
+		}
 	}
 
 }
@@ -109,7 +116,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 	GenerationUtilities::results.Empty();
 
 	//Generation
-	GenerationUtilities::Subdivide(centralBox, centralBox, 4, GenerationUtilities::RandomSubdivision());
+	GenerationUtilities::Subdivide(&centralBox, &centralBox, 4, GenerationUtilities::RandomSubdivision());
 
 	//Logging 
 	//UE_LOG(LogShapeRenderer, Warning, TEXT("Generation Done"));
@@ -429,13 +436,13 @@ GenerationUtilities::~GenerationUtilities()
 
 }
 
-TArray<UEnhancedBox> GenerationUtilities::results = TArray<UEnhancedBox>();
+TArray<UEnhancedBox*> GenerationUtilities::results = TArray<UEnhancedBox*>();
 
-void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, int iterations, ESubdivisionType subdivisionType)
+void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide, int iterations, ESubdivisionType subdivisionType, bool deleteSubdividedBounds)
 {
 
-	int minSubdivisionWidth = 0.3f * boxToSubdivide.Width();
-	int maxSubdivisionWidth = 0.7f * boxToSubdivide.Width();
+	int minSubdivisionWidth = 0.3f * boxToSubdivide->Width();
+	int maxSubdivisionWidth = 0.7f * boxToSubdivide->Width();
 
 	iterations--;
 	
@@ -444,12 +451,18 @@ void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdi
 	{
 		return;
 	}
-
-
 	//Recursive Subdivision
 
-	TArray<UEnhancedBox> subdivisions = GenerationUtilities::Split(bounds, boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, maxSubdivisionWidth) / bounds.Width(), subdivisionType);
-
+	TArray<UEnhancedBox*> subdivisions = GenerationUtilities::Split(*bounds, *boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, maxSubdivisionWidth) / bounds->Width(), subdivisionType);
+	
+	if (deleteSubdividedBounds)
+	{
+		boxToSubdivide = nullptr;
+	}
+	else
+	{
+		deleteSubdividedBounds = true;
+	}
 	for (int i = 0; i < subdivisions.Num(); i++)
 	{
 		//Random Version
@@ -466,23 +479,23 @@ void GenerationUtilities::Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdi
 		**/
 
 		//Height Ratio (+ palu)
-		subdivisionType = subdivisions[i].HeightRatio() >= 1.125f ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
+		subdivisionType = subdivisions[i]->HeightRatio() >= 1.125f ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
 		if (UKismetMathLibrary::RandomFloat() >= 0.0f)
 		{
-			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType);
+			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType, deleteSubdividedBounds);
 		}
 		else
 		{
-			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision());
+			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision(), deleteSubdividedBounds);
 		}
 	}
 }
 
-TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, float splitLocationFromAxis, ESubdivisionType subdivisionType)
+TArray<UEnhancedBox*> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, float splitLocationFromAxis, ESubdivisionType subdivisionType)
 {
-	FVector offset = FVector(0, 0, 0);
+	FVector offset = FVector(5, 5, 0);
 
-	TArray<UEnhancedBox> subdivisions;
+	TArray<UEnhancedBox*> subdivisions;
 
 	//Horizontal
 	if (subdivisionType == ESubdivisionType::Horizontal) 
@@ -502,7 +515,7 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 		
 		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
 
-		UEnhancedBox box1 = UEnhancedBox(box1Center, box1Extends);
+		UEnhancedBox* box1 = new UEnhancedBox(box1Center, box1Extends);
 
 		FVector box2Center = FVector(
 			boxToSubdivide.TopLeft().X + boxToSubdivide.Width() + (boxToSubdivide.Width() * splitLocationFromAxis),
@@ -518,10 +531,10 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 		
 		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
 
-		UEnhancedBox box2 = UEnhancedBox(box2Center, box2Extends);
+		UEnhancedBox* box2 = new UEnhancedBox(box2Center, box2Extends);
 		
-		box1.color = FColor::MakeRandomColor();
-		box2.color = FColor::MakeRandomColor();
+		box1->color = FColor::MakeRandomColor();
+		box2->color = FColor::MakeRandomColor();
 
 		GenerationUtilities::results.Add(box1);
 		
@@ -548,7 +561,7 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 		
 		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
 
-		UEnhancedBox box1 = UEnhancedBox(box1Center, box1Extends);
+		UEnhancedBox* box1 = new UEnhancedBox(box1Center, box1Extends);
 
 		FVector box2Center = FVector(
 			boxToSubdivide.box.GetCenter().X,
@@ -564,11 +577,11 @@ TArray<UEnhancedBox> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBo
 
 		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
 
-		UEnhancedBox box2 = UEnhancedBox(box2Center, box2Extends);
+		UEnhancedBox* box2 = new UEnhancedBox(box2Center, box2Extends);
 
-		box1.color = FColor::MakeRandomColor();
+		box1->color = FColor::MakeRandomColor();
 		
-		box2.color = FColor::MakeRandomColor();
+		box2->color = FColor::MakeRandomColor();
 
 		GenerationUtilities::results.Add(box1);
 

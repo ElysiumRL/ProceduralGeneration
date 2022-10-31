@@ -7,10 +7,6 @@
 #include <ToolContextInterfaces.h>
 
 
-/**
- * 
- */
-
 class PROCEDURALGENERATIONTOOL_API UEnhancedBox
 {
 

@@ -209,11 +209,11 @@ public:
 
 	inline static ESubdivisionType RandomSubdivision() { return static_cast<ESubdivisionType>(FMath::RandRange(0, 1)); }
 
-	static TArray<UEnhancedBox> results;
+	static TArray<UEnhancedBox*> results;
 
-	static void Subdivide(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, int iterations, ESubdivisionType subdivisionType);
+	static void Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide, int iterations, ESubdivisionType subdivisionType,bool deleteSubdividedBounds = false);
 
-	static TArray<UEnhancedBox> Split(UEnhancedBox bounds,UEnhancedBox boxToSubdivide,float splitLocationFromAxis, ESubdivisionType subdivisionType);
+	static TArray<UEnhancedBox*> Split(UEnhancedBox bounds,UEnhancedBox boxToSubdivide,float splitLocationFromAxis, ESubdivisionType subdivisionType);
 
 	static void MergeBoxes();
 
