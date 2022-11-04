@@ -414,14 +414,6 @@ void UPrimitiveShapeRendererProperties::StartGeneration()
 	}
 	tool->StartProceduralGeneration();
 
-	
-
-
-
-
-
-
-
 }
 
 #pragma endregion Start Generation
@@ -440,29 +432,19 @@ TArray<UEnhancedBox*> GenerationUtilities::results = TArray<UEnhancedBox*>();
 
 void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide, int iterations, ESubdivisionType subdivisionType, bool deleteSubdividedBounds)
 {
-
-	int minSubdivisionWidth = 0.3f * boxToSubdivide->Width();
-	int maxSubdivisionWidth = 0.7f * boxToSubdivide->Width();
-
 	iterations--;
-	
 	//Exit Condition
 	if (iterations == 0 /*|| (iterations -2 <= 0 && UKismetMathLibrary::RandomFloat() <= 0.25f)*/)
 	{
+		GenerationUtilities::results.Add(boxToSubdivide);
 		return;
 	}
 	//Recursive Subdivision
+	
+	int minSubdivisionWidth = 0.3f * boxToSubdivide->Width();
+	int maxSubdivisionWidth = 0.7f * boxToSubdivide->Width();
 
 	TArray<UEnhancedBox*> subdivisions = GenerationUtilities::Split(*bounds, *boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, maxSubdivisionWidth) / bounds->Width(), subdivisionType);
-	
-	if (deleteSubdividedBounds)
-	{
-		boxToSubdivide = nullptr;
-	}
-	else
-	{
-		deleteSubdividedBounds = true;
-	}
 	for (int i = 0; i < subdivisions.Num(); i++)
 	{
 		//Random Version
@@ -478,8 +460,10 @@ void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSub
 		}
 		**/
 
-		//Height Ratio (+ palu)
+		//Height Ratio Version (provides better rectangles than random version
+		//Default ratio is 1.125 (can be adjusted between 1.05 and 1.4 at extreme cases)
 		subdivisionType = subdivisions[i]->HeightRatio() >= 1.125f ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
+		
 		if (UKismetMathLibrary::RandomFloat() >= 0.0f)
 		{
 			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType, deleteSubdividedBounds);
@@ -493,13 +477,16 @@ void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSub
 
 TArray<UEnhancedBox*> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedBox boxToSubdivide, float splitLocationFromAxis, ESubdivisionType subdivisionType)
 {
-	FVector offset = FVector(5, 5, 0);
+	//Debug Offset (should not be used usually)
+	FVector offset = FVector(0, 0, 0);
 
+	//Subdivided rectangles generated
 	TArray<UEnhancedBox*> subdivisions;
 
 	//Horizontal
 	if (subdivisionType == ESubdivisionType::Horizontal) 
 	{
+		
 		FVector box1Center = FVector(
 			boxToSubdivide.TopRight().X + (boxToSubdivide.Width() * splitLocationFromAxis),
 			boxToSubdivide.box.GetCenter().Y,
@@ -532,16 +519,10 @@ TArray<UEnhancedBox*> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedB
 		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
 
 		UEnhancedBox* box2 = new UEnhancedBox(box2Center, box2Extends);
-		
 		box1->color = FColor::MakeRandomColor();
 		box2->color = FColor::MakeRandomColor();
-
-		GenerationUtilities::results.Add(box1);
 		
-		GenerationUtilities::results.Add(box2);
-		
-		subdivisions.Add(box1);
-		
+		subdivisions.Add(box1);	
 		subdivisions.Add(box2);
 
 	}
@@ -579,16 +560,10 @@ TArray<UEnhancedBox*> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedB
 
 		UEnhancedBox* box2 = new UEnhancedBox(box2Center, box2Extends);
 
-		box1->color = FColor::MakeRandomColor();
-		
+		box1->color = FColor::MakeRandomColor();		
 		box2->color = FColor::MakeRandomColor();
 
-		GenerationUtilities::results.Add(box1);
-
-		GenerationUtilities::results.Add(box2);
-
 		subdivisions.Add(box1);
-
 		subdivisions.Add(box2);
 	}
 
