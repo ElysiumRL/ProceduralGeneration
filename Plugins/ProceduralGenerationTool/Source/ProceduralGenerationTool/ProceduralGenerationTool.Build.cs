@@ -23,11 +23,11 @@ public class ProceduralGenerationTool : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core"
+				"Core",
 			}
 			);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -41,7 +41,9 @@ public class ProceduralGenerationTool : ModuleRules
 				"UnrealEd",
 				"LevelEditor",
 				"InteractiveToolsFramework",
-				"EditorInteractiveToolsFramework"
+				"EditorInteractiveToolsFramework",
+				"GeometryScriptingEditor",
+				"GeometryScriptingCore"
 			}
 			);
 		
