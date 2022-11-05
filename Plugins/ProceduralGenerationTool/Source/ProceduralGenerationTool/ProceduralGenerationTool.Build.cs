@@ -43,7 +43,8 @@ public class ProceduralGenerationTool : ModuleRules
 				"InteractiveToolsFramework",
 				"EditorInteractiveToolsFramework",
 				"GeometryScriptingEditor",
-				"GeometryScriptingCore"
+				"GeometryScriptingCore",
+				"GeometryFramework"
 			}
 			);
 		

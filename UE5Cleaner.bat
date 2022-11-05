@@ -14,6 +14,6 @@ rmdir /q/s Saved
 
 set path=""
 
-@echo on
 for /F "delims=" %%I in ('dir /s /b *.uproject') do (path="%%I")
+@echo on
 start /b /d "C:\Program Files\Epic Games\UE_5.0\Engine\Binaries\DotNET\UnrealBuildTool\" UnrealBuildTool.exe -projectfiles -project=%path% -game -rocket -progress
