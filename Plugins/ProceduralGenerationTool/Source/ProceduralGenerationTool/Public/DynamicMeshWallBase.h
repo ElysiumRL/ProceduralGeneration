@@ -13,9 +13,11 @@
 #include "GeometryScript/MeshUVFunctions.h"
 
 
+#include "Delegates/Delegate.h" 
 
 #include "Kismet/KismetSystemLibrary.h"
 #include "DynamicMeshWallBase.generated.h"
+
 
 /**
  * Base methods for exporting dynamic meshes
@@ -49,15 +51,20 @@ public:
 	UDynamicMesh* GenerateBox(FVector size, FVector location);
 
 	UFUNCTION(BlueprintCallable, Category = "DynamicWall")
-	UDynamicMesh* GenerateBoxHole(UDynamicMesh* target, FVector size, FVector location);
+	UDynamicMesh* GenerateBoxHole(FVector size, FVector location);
 
 	UFUNCTION(BlueprintCallable, Category = "DynamicWall")
-	UDynamicMesh* GenerateRoundedBoxHole(UDynamicMesh* target, FVector size, FVector location, int precision, float cornerRadius);
+	UDynamicMesh* GenerateRoundedBoxHole(FVector size, FVector location, int precision, float cornerRadius);
 
 	UFUNCTION(BlueprintCallable, Category = "DynamicWall")
 	void AlignUVScale(UDynamicMesh* target, FVector2D newScale);
 
 	UFUNCTION(BlueprintCallable, Category = "DynamicWall")
 	void SetMaterial(UDynamicMeshComponent* mesh, UMaterialInterface* material);
+
+	DECLARE_DELEGATE(FDynamicMeshActions);
+
+	TArray<FDynamicMeshActions> actions;
+
 
 };

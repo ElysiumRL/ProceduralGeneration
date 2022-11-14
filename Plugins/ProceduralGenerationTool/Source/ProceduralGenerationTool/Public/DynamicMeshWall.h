@@ -16,9 +16,6 @@ class PROCEDURALGENERATIONTOOL_API ADynamicMeshWall : public ADynamicMeshWallBas
 	
 public:
 	
-	UFUNCTION(BlueprintNativeEvent, Category = "DynamicWall")
-	void RebuildMesh(UDynamicMesh* TargetMesh);
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Wall")
 	FVector wallSize;
 	
@@ -42,4 +39,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window")
 	int roundPrecision;
+
+
 };

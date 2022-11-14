@@ -98,11 +98,19 @@ void ADynamicMeshWallBase::GenerateBaseWall(FVector size)
 
 UDynamicMesh* ADynamicMeshWallBase::GenerateBox(FVector size, FVector location)
 {
+	auto mesh = DynamicMeshComponent->GetDynamicMesh();
 	UDynamicMesh* newMesh = AllocateComputeMesh();
+
+	FGeometryScriptPrimitiveOptions primitiveOptions;
+	FTransform transform = FTransform();
+	FQuat rotation = FQuat::MakeFromEuler(FVector(90, 0, 0));
+	transform.SetRotation(rotation);
+	newMesh = UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendRectangleXY(newMesh, primitiveOptions, transform, size.X, size.Z);
+
 	return newMesh;
 }
 
-UDynamicMesh* ADynamicMeshWallBase::GenerateBoxHole(UDynamicMesh* target, FVector size, FVector location)
+UDynamicMesh* ADynamicMeshWallBase::GenerateBoxHole(FVector size, FVector location)
 {
 	auto mesh = DynamicMeshComponent->GetDynamicMesh();
 	UDynamicMesh* newMesh = AllocateComputeMesh();
@@ -128,7 +136,7 @@ UDynamicMesh* ADynamicMeshWallBase::GenerateBoxHole(UDynamicMesh* target, FVecto
 	return newMesh;
 }
 
-UDynamicMesh* ADynamicMeshWallBase::GenerateRoundedBoxHole(UDynamicMesh* target, FVector size, FVector location, int precision, float _cornerRadius)
+UDynamicMesh* ADynamicMeshWallBase::GenerateRoundedBoxHole(FVector size, FVector location, int precision, float _cornerRadius)
 {
 	auto mesh = DynamicMeshComponent->GetDynamicMesh();
 

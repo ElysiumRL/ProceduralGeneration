@@ -2,9 +2,3 @@
 
 
 #include "DynamicMeshWall.h"
-
-void ADynamicMeshWall::RebuildMesh_Implementation(UDynamicMesh* TargetMesh)
-{
-	UE_LOG(LogTemp, Warning, L"OnRebuildGeneratedMesh");
-
-}

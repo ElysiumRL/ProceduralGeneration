@@ -5,7 +5,11 @@
 #include "CoreMinimal.h"
 #include "InteractiveToolBuilder.h"
 #include "BaseTools/SingleClickTool.h"
+#include "Kismet/KismetSystemLibrary.h"
+
 #include "EnhancedBox.h"
+#include "DynamicMeshWall.h"
+
 #include "PrimitiveShapeRenderer.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShapeRenderer, Log, All);
@@ -145,11 +149,12 @@ public:
 	virtual void Render(IToolsContextRenderAPI* RenderAPI) override;
 
 	virtual void OnPropertyModified(UObject* PropertySet, FProperty* Property) override;
+	UClass* test;
 
 protected:
 	UPROPERTY()
 	TObjectPtr<UPrimitiveShapeRendererProperties> Properties;
-
+	
 
 protected:
 	UWorld* TargetWorld;
@@ -208,7 +213,7 @@ public:
 	~GenerationUtilities();
 
 	inline static ESubdivisionType RandomSubdivision() { return static_cast<ESubdivisionType>(FMath::RandRange(0, 1)); }
-
+	
 	static TArray<UEnhancedBox*> results;
 
 	static void Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide, int iterations, ESubdivisionType subdivisionType,bool deleteSubdividedBounds = false);
@@ -217,7 +222,7 @@ public:
 
 	static void MergeBoxes();
 
-	static void CreateWall(UEnhancedBox box);
+	static void CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer);
 
 	static void LinkBoxes(bool bAllowMultipleConnections);
 

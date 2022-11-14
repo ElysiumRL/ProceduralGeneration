@@ -7,10 +7,12 @@
 #include "CollisionQueryParams.h"
 #include "Engine/World.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "UObject/ConstructorHelpers.h"
 
 #include "SettingsExporterImporter.h"
 
 DEFINE_LOG_CATEGORY(LogShapeRenderer);
+#define BP_PATH_TEST TEXT("/ProceduralGenerationTool/GeometryScript/BP_DynamicWall")
 
 UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
 {
@@ -23,6 +25,8 @@ UInteractiveTool* UPrimitiveShapeRendererToolBuilder::BuildTool(const FToolBuild
 
 UPrimitiveShapeRenderer::UPrimitiveShapeRenderer()
 {
+	ConstructorHelpers::FClassFinder<ADynamicMeshWall> Test(BP_PATH_TEST);
+	test = Test.Class;
 }
 
 void UPrimitiveShapeRenderer::SetWorld(UWorld* World)
@@ -130,10 +134,10 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 	UBoxedRoom room;
 
 
-
-
-
-
+	for (int i = 0; i < GenerationUtilities::results.Num(); i++)
+	{
+		GenerationUtilities::CreateWall(*GenerationUtilities::results[i], this);
+	}
 }
 
 void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty* Property)
@@ -576,8 +580,23 @@ void GenerationUtilities::MergeBoxes()
 
 }
 
-void GenerationUtilities::CreateWall(UEnhancedBox box)
+void GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer)
 {
+	FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport);
+	//auto wallObj = LoadObject<ADynamicMeshWall>(NULL, L"Test", BP_PATH_TEST);
+
+	ADynamicMeshWall* wall = world->World()->SpawnActor<ADynamicMeshWall>(renderer->test,FVector(100,100,100),FRotator());
+
+	wall->wallSize = box.extent;
+	DECLARE_DELEGATE(FDynamicMeshActions);
+	FDynamicMeshActions actionToAdd;
+	actionToAdd.BindLambda([wall]()
+	{
+	wall->GenerateBaseWall(wall->wallSize);
+	wall->GenerateRoundedBoxHole(FVector(wall->wallSize.X - 25, wall->wallSize.Y - 25, wall->wallSize.Z - 25), FVector(100, 100, 100), 5, 8.f);
+		UE_LOG(LogShapeRenderer, Display, L"JHRGKEJGHZKLJGHLK");
+	});
+	wall->actions.Add(actionToAdd);
 
 }
 
