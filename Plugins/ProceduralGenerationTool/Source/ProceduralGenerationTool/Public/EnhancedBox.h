@@ -6,7 +6,6 @@
 #include "UObject/NoExportTypes.h"
 #include <ToolContextInterfaces.h>
 
-
 class PROCEDURALGENERATIONTOOL_API UEnhancedBox
 {
 
@@ -44,6 +43,9 @@ public:
 		void DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& _color = FColor::Red, float thickness = 2.f);
 
 		FVector RotateBox(const FVector& boxOrigin, FVector fromLocation, float angle);
+		
+		FORCEINLINE FString ToString() { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }
+
 
 		FORCEINLINE float Area2D() { return extent.X * extent.Y; }
 
@@ -58,10 +60,29 @@ public:
 		FORCEINLINE float WidthRatio() { return Height() == 0.0f ? 0.0f : Width() / Height(); }
 
 		FORCEINLINE float HeightRatio() { return Width() == 0.0f ? 0.0f : Height() / Width(); }
+		
+		FORCEINLINE FVector Center() { return box.GetCenter(); }
 
 		FORCEINLINE FVector TopLeft() { return box.Min; }
 
 		FORCEINLINE FVector TopRight() { return FVector(box.Min.X, box.Max.Y, box.Min.Z); }
 
-		FORCEINLINE FString ToString() { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }
+
+		//////////////////////////////////////////////////////////////////////////
+
+		FORCEINLINE FVector XPosPoint() { return FVector(Center().X + extent.X / 2.f, Center().Y, Center().Z); }
+
+		FORCEINLINE FVector XNegPoint() { return FVector(Center().X - extent.X / 2.f, Center().Y, Center().Z); }
+
+		FORCEINLINE FVector YPosPoint() { return FVector(Center().X, Center().Y + extent.Y / 2.f, Center().Z); }
+
+		FORCEINLINE FVector YNegPoint() { return FVector(Center().X, Center().Y - extent.Y / 2.f, Center().Z); }
+
+		FORCEINLINE FVector ZPosPoint() { return FVector(Center().X, Center().Y, Center().Z + extent.Z / 2.f); }
+
+		FORCEINLINE FVector ZNegPoint() { return FVector(Center().X, Center().Y, Center().Z - extent.Z / 2.f); }
+
+
+
+
 };
