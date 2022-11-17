@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "InteractiveToolBuilder.h"
 #include "BaseTools/SingleClickTool.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 #include "EnhancedBox.h"
 #include "DynamicMeshWall.h"
@@ -149,8 +148,7 @@ public:
 	virtual void Render(IToolsContextRenderAPI* RenderAPI) override;
 
 	virtual void OnPropertyModified(UObject* PropertySet, FProperty* Property) override;
-	UClass* test;
-
+	
 protected:
 	UPROPERTY()
 	TObjectPtr<UPrimitiveShapeRendererProperties> Properties;
@@ -190,6 +188,8 @@ protected:
 	//////////////////////////////////////////////////////////////////////////
 
 public:
+	//BP Class of the Dynamic Wall
+	UClass* dynamicWallBP;
 
 	void StartProceduralGeneration();
 };

@@ -3,19 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "GeometryActors/GeneratedDynamicMeshActor.h"
-#include "GeometryScript/CreateNewAssetUtilityFunctions.h"
-#include "GeometryScript/MeshAssetFunctions.h"
-
-#include "GeometryScript/MeshPrimitiveFunctions.h"
-#include "GeometryScript/MeshModelingFunctions.h"
-#include "GeometryScript/MeshBooleanFunctions.h"
-#include "GeometryScript/MeshUVFunctions.h"
-
-
-#include "Delegates/Delegate.h" 
-
-#include "Kismet/KismetSystemLibrary.h"
 #include "DynamicMeshWallBase.generated.h"
 
 
@@ -62,9 +51,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "DynamicWall")
 	void SetMaterial(UDynamicMeshComponent* mesh, UMaterialInterface* material);
 
-	DECLARE_DELEGATE(FDynamicMeshActions);
+	//DECLARE_DELEGATE(FDynamicMeshActions);
 
-	TArray<FDynamicMeshActions> actions;
+	//TArray<FDynamicMeshActions> actions;
 
 
 };

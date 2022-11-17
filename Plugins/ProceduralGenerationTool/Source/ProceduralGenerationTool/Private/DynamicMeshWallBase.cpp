@@ -2,8 +2,16 @@
 
 
 #include "DynamicMeshWallBase.h"
+#include "GeometryScript/CreateNewAssetUtilityFunctions.h"
+#include "GeometryScript/MeshAssetFunctions.h"
+#include "GeometryScript/MeshPrimitiveFunctions.h"
+#include "GeometryScript/MeshModelingFunctions.h"
+#include "GeometryScript/MeshBooleanFunctions.h"
+#include "GeometryScript/MeshUVFunctions.h"
+#include "Kismet/KismetSystemLibrary.h"
 
-DEFINE_LOG_CATEGORY_STATIC(LogDynamicMesh,Log,All);
+
+DEFINE_LOG_CATEGORY_STATIC(LogDynamicMesh, Log, All);
 
 
 void ADynamicMeshWallBase::GenerateStaticMesh()
