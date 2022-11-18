@@ -28,16 +28,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window")
 	bool bHasWindow;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window", meta = (EditCondition = "bHasWindow"))
 	FVector windowSize;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window", meta = (EditCondition = "bHasWindow"))
+	FVector windowLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window", meta = (EditCondition = "bHasWindow"))
 	bool bRoundedWindow;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window", meta = (EditCondition = "bHasWindow"))
 	float cornerRadius;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DynamicWall|Window", meta = (EditCondition = "bHasWindow"))
 	int roundPrecision;
 
 

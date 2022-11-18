@@ -6,7 +6,6 @@
 #include "ToolBuilderUtil.h"
 #include "CollisionQueryParams.h"
 #include "Engine/World.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -120,6 +119,10 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 {
 	//Remove all existing boxes
 	GenerationUtilities::results.Empty();
+
+	GenerationUtilities::randomSeedRNG = FRandomStream(Properties->randomSeedValue);
+
+
 
 	//Generation
 	GenerationUtilities::Subdivide(&centralBox, &centralBox, 4, GenerationUtilities::RandomSubdivision());
@@ -422,6 +425,11 @@ void UPrimitiveShapeRendererProperties::StartGeneration()
 
 }
 
+void UPrimitiveShapeRendererProperties::SetRandomSeed()
+{
+	randomSeedValue = UKismetMathLibrary::RandomInteger(INT32_MAX);
+}
+
 #pragma endregion Start Generation
 
 GenerationUtilities::GenerationUtilities()
@@ -434,6 +442,8 @@ GenerationUtilities::~GenerationUtilities()
 
 }
 
+FRandomStream GenerationUtilities::randomSeedRNG;
+
 TArray<UEnhancedBox*> GenerationUtilities::results = TArray<UEnhancedBox*>();
 
 void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide, int iterations, ESubdivisionType subdivisionType, bool deleteSubdividedBounds)
@@ -445,12 +455,12 @@ void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSub
 		GenerationUtilities::results.Add(boxToSubdivide);
 		return;
 	}
-	//Recursive Subdivision
 	
+	//Recursive Subdivision
 	int minSubdivisionWidth = 0.3f * boxToSubdivide->Width();
 	int maxSubdivisionWidth = 0.7f * boxToSubdivide->Width();
 
-	TArray<UEnhancedBox*> subdivisions = GenerationUtilities::Split(*bounds, *boxToSubdivide, UKismetMathLibrary::RandomFloatInRange(minSubdivisionWidth, maxSubdivisionWidth) / bounds->Width(), subdivisionType);
+	TArray<UEnhancedBox*> subdivisions = GenerationUtilities::Split(*bounds, *boxToSubdivide, UKismetMathLibrary::RandomFloatInRangeFromStream(minSubdivisionWidth, maxSubdivisionWidth,GenerationUtilities::randomSeedRNG) / bounds->Width(), subdivisionType);
 	for (int i = 0; i < subdivisions.Num(); i++)
 	{
 		//Random Version
@@ -586,19 +596,57 @@ void GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* 
 {
 	FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport);
 
-	ADynamicMeshWall* wall = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, FVector(100, 100, 100), FRotator());
-
-	wall->wallSize = box.extent;
-	
-	//DECLARE_DELEGATE(FDynamicMeshActions);
-	//FDynamicMeshActions actionToAdd;
-	//actionToAdd.BindLambda([wall]()
+	//ADynamicMeshWall* wall = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, box.Center(), FRotator());
+	//bool DEBUG_RenderAsOneWall = false;
+	//
+	//if (DEBUG_RenderAsOneWall)
 	//{
-	//wall->GenerateBaseWall(wall->wallSize);
-	//wall->GenerateRoundedBoxHole(FVector(wall->wallSize.X - 25, wall->wallSize.Y - 25, wall->wallSize.Z - 25), FVector(100, 100, 100), 5, 8.f);
-	//	UE_LOG(LogShapeRenderer, Display, L"JHRGKEJGHZKLJGHLK");
-	//});
-	//wall->actions.Add(actionToAdd);
+	//	wall->wallSize = box.extent;
+	//	wall->bHasWindow = true;
+	//	wall->windowSize = FVector(box.extent.X * 1.8f, box.extent.Y * 1.8f, box.extent.Z + 150);
+	//	wall->windowLocation = FVector(0, 0, 0);
+	//	return;
+	//}
+	//wall->windowSize = FVector(box.extent.X * 1.8f, box.extent.Y * 1.8f, box.extent.Z + 150);
+	//wall->windowLocation = FVector(0, 0, 0);
+
+	//Create a wall with a specific size for each part of a box
+	//AAAAAAAAAAAAA
+
+	// x|  -  |
+
+	float wallThickness = 10.f;
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	FVector boxSizeY = FVector(box.extent.X, wallThickness, box.extent.Z);
+
+	FVector yPos = box.YPosPoint() - FVector(0, wallThickness, 0);
+	FVector yNeg = box.YNegPoint() + FVector(0, wallThickness, 0);
+	
+	ADynamicMeshWall* wall = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, yPos, FRotator(0,0,0));
+	wall->wallSize = boxSizeY;
+	wall->bHasWindow = false;
+	
+	ADynamicMeshWall* wall2 = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, yNeg, FRotator(0, 0, 0));
+	wall2->wallSize = boxSizeY;
+	wall2->bHasWindow = false;
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	FVector boxSizeX = FVector(box.extent.Y, wallThickness, box.extent.Z);
+
+	FVector xPos = box.XPosPoint() - FVector(wallThickness, 0, 0);
+	FVector xNeg = box.XNegPoint() + FVector(wallThickness, 0, 0);
+
+	ADynamicMeshWall* wall3 = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, xPos, FRotator(0, 90, 0));
+	wall3->wallSize = boxSizeX;
+	wall3->bHasWindow = false;
+	ADynamicMeshWall* wall4 = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, xNeg, FRotator(0, 90, 0));
+	wall4->wallSize = boxSizeX;
+	wall4->bHasWindow = false;
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 

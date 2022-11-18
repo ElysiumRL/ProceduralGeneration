@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InteractiveToolBuilder.h"
 #include "BaseTools/SingleClickTool.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include "EnhancedBox.h"
 #include "DynamicMeshWall.h"
@@ -100,6 +101,15 @@ public:
 	UFUNCTION(CallInEditor,Category = "_ControlPanel")
 	void StartGeneration();
 	
+	UFUNCTION(CallInEditor, Category = "Seed")
+	void SetRandomSeed();
+	
+	UPROPERTY(EditAnywhere, Category = "Seed", meta = (DisplayName = "Seed"))
+	int32 randomSeedValue;
+
+
+
+
 	UPrimitiveShapeRenderer* tool;
 
 private:
@@ -212,7 +222,9 @@ public:
 	GenerationUtilities();
 	~GenerationUtilities();
 
-	inline static ESubdivisionType RandomSubdivision() { return static_cast<ESubdivisionType>(FMath::RandRange(0, 1)); }
+	static FRandomStream randomSeedRNG;
+
+	inline static ESubdivisionType RandomSubdivision() { return static_cast<ESubdivisionType>(UKismetMathLibrary::RandomIntegerFromStream(1, GenerationUtilities::randomSeedRNG)); }
 	
 	static TArray<UEnhancedBox*> results;
 

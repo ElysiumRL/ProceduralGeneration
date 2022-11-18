@@ -70,17 +70,17 @@ public:
 
 		//////////////////////////////////////////////////////////////////////////
 
-		FORCEINLINE FVector XPosPoint() { return FVector(Center().X + extent.X / 2.f, Center().Y, Center().Z); }
+		FORCEINLINE FVector XPosPoint() { return FVector(Center().X + extent.X, Center().Y, Center().Z); }
 
-		FORCEINLINE FVector XNegPoint() { return FVector(Center().X - extent.X / 2.f, Center().Y, Center().Z); }
+		FORCEINLINE FVector XNegPoint() { return FVector(Center().X - extent.X, Center().Y, Center().Z); }
 
-		FORCEINLINE FVector YPosPoint() { return FVector(Center().X, Center().Y + extent.Y / 2.f, Center().Z); }
+		FORCEINLINE FVector YPosPoint() { return FVector(Center().X, Center().Y + extent.Y, Center().Z); }
 
-		FORCEINLINE FVector YNegPoint() { return FVector(Center().X, Center().Y - extent.Y / 2.f, Center().Z); }
+		FORCEINLINE FVector YNegPoint() { return FVector(Center().X, Center().Y - extent.Y, Center().Z); }
 
-		FORCEINLINE FVector ZPosPoint() { return FVector(Center().X, Center().Y, Center().Z + extent.Z / 2.f); }
+		FORCEINLINE FVector ZPosPoint() { return FVector(Center().X, Center().Y, Center().Z + extent.Z); }
 
-		FORCEINLINE FVector ZNegPoint() { return FVector(Center().X, Center().Y, Center().Z - extent.Z / 2.f); }
+		FORCEINLINE FVector ZNegPoint() { return FVector(Center().X, Center().Y, Center().Z - extent.Z); }
 
 
 
