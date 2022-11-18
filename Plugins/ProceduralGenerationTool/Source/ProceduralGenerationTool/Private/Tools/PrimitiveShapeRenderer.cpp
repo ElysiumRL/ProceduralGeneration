@@ -460,7 +460,9 @@ void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSub
 	int minSubdivisionWidth = 0.3f * boxToSubdivide->Width();
 	int maxSubdivisionWidth = 0.7f * boxToSubdivide->Width();
 
-	TArray<UEnhancedBox*> subdivisions = GenerationUtilities::Split(*bounds, *boxToSubdivide, UKismetMathLibrary::RandomFloatInRangeFromStream(minSubdivisionWidth, maxSubdivisionWidth,GenerationUtilities::randomSeedRNG) / bounds->Width(), subdivisionType);
+	TArray<UEnhancedBox*> subdivisions = GenerationUtilities::Split(*bounds, *boxToSubdivide,
+		UKismetMathLibrary::RandomFloatInRangeFromStream(minSubdivisionWidth, maxSubdivisionWidth,
+			GenerationUtilities::randomSeedRNG) / bounds->Width(), subdivisionType);
 	for (int i = 0; i < subdivisions.Num(); i++)
 	{
 		//Random Version
@@ -480,7 +482,7 @@ void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSub
 		//Default ratio is 1.125 (can be adjusted between 1.05 and 1.4 at extreme cases)
 		subdivisionType = subdivisions[i]->HeightRatio() >= 1.125f ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
 		
-		if (UKismetMathLibrary::RandomFloat() >= 0.0f)
+		if (UKismetMathLibrary::RandomFloatFromStream(GenerationUtilities::randomSeedRNG) >= 0.0f)
 		{
 			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType, deleteSubdividedBounds);
 		}

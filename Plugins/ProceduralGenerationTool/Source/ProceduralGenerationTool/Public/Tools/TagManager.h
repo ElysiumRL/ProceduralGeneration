@@ -3,15 +3,100 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "InteractiveToolBuilder.h"
+#include "BaseTools/SingleClickTool.h"
+
 #include "TagManager.generated.h"
 
-/**
- * 
- */
+DECLARE_LOG_CATEGORY_EXTERN(LogTagManager, Log, All);
+
+
 UCLASS()
-class PROCEDURALGENERATIONTOOL_API UTagManager : public UObject
+class PROCEDURALGENERATIONTOOL_API UTagManagerToolBuilder : public UInteractiveToolBuilder
 {
 	GENERATED_BODY()
-	
+
+
+public:
+
+	virtual bool CanBuildTool(const FToolBuilderState& SceneState) const override { return true; }
+
+	virtual UInteractiveTool* BuildTool(const FToolBuilderState& SceneState) const override;
+
+};
+
+USTRUCT(Blueprintable,BlueprintType)
+struct FTag
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+	FName tag;
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+	FString description;
+
+};
+
+UCLASS(Transient)
+class PROCEDURALGENERATIONTOOL_API UTagManagerProperties : public UInteractiveToolPropertySet
+{
+	GENERATED_BODY()
+
+
+public:
+	UTagManagerProperties();
+
+	UPROPERTY(EditAnywhere, Category = "Tag", meta = (DisplayName = "Tag"))
+	FName tag;
+
+	void ExportProperties();
+
+	bool ImportProperties();
+
+	void DefaultProperties();
+
+	void InitializeDataTable();
+
+	UTagManager* tool;
+
+private:
+
+	UDataTable* propertiesAsTable;
+
+
+};
+
+UCLASS()
+class PROCEDURALGENERATIONTOOL_API UTagManager : public USingleClickTool
+{
+	GENERATED_BODY()
+
+
+public:
+	UTagManager();
+
+	virtual void SetWorld(UWorld* World);
+
+	virtual void Setup() override;
+
+	virtual void OnClicked(const FInputDeviceRay& ClickPos);
+
+	virtual void Render(IToolsContextRenderAPI* RenderAPI) override;
+
+	virtual void OnPropertyModified(UObject* PropertySet, FProperty* Property) override;
+
+protected:
+	UPROPERTY()
+	TObjectPtr<UTagManagerProperties> Properties;
+
+	UWorld* TargetWorld;
+
+	static const int MoveSecondPointModifierID = 1;
+
+	bool bSecondPointModifierDown = false;
+
+	bool bMoveSecondPoint = false;
 };
