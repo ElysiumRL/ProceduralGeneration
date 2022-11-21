@@ -5,8 +5,6 @@
 #include "InteractiveToolManager.h"
 #include "ToolBuilderUtil.h"
 
-#include "SettingsExporterImporter.h"
-
 DEFINE_LOG_CATEGORY(LogTagManager);
 
 UInteractiveTool* UTagManagerToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
@@ -70,21 +68,9 @@ UTagManagerProperties::UTagManagerProperties()
 
 void UTagManagerProperties::ExportProperties()
 {
-	//TODO: add data table
-	FPSRSettingsTable table;
-	/*
-	table.boxColor = boxColor;
-	table.boxExtent = boxExtent;
-	table.boxThickness = boxThickness;
-	table.boxTransform = boxTransform;
-	table.primitiveShape = primitiveShape;
-	table.rotation = rotation;
-	table.splitBox = splitBox;
-	table.randomSubdivisionColor = randomSubdivisionColor;
-	table.subdivisionColor = subdivisionColor;
-	table.subdivisionCount = subdivisionCount;
-	table.subdivisionThickness = subdivisionThickness;
-	*/
+	FTableTags table;
+	table.tags = tags;
+
 	propertiesAsTable->AddRow(TEXT("Settings"), table);
 	propertiesAsTable->MarkPackageDirty();
 
@@ -97,31 +83,14 @@ bool UTagManagerProperties::ImportProperties()
 	for (int i = 0; i < rowNames.Num(); i++)
 	{
 		//TODO: AddTable
-		FPSRSettingsTable* table = propertiesAsTable->FindRow<FPSRSettingsTable>(rowNames[i], "");
+		FTableTags* table = propertiesAsTable->FindRow<FTableTags>(rowNames[i], "");
 
 		if (table == nullptr)
 		{
 			continue;
 		}
-		/*
-		boxColor = table->boxColor;
-		boxExtent = table->boxExtent;
-		boxThickness = table->boxThickness;
-		boxTransform = table->boxTransform;
-		primitiveShape = table->primitiveShape;
-		rotation = table->rotation;
-		splitBox = table->splitBox;
-		randomSubdivisionColor = table->randomSubdivisionColor;
-		subdivisionColor = table->subdivisionColor;
-		subdivisionCount = table->subdivisionCount;
-		subdivisionThickness = table->subdivisionThickness;
-		renderBox = true;
+		tags = table->tags;
 
-		if (splitBox)
-		{
-			renderSubdividedBoxes = true;
-		}
-		*/
 		UE_LOG(LogShapeRenderer, Display, TEXT("Properties Loaded"));
 		return true;
 	}
@@ -136,7 +105,7 @@ void UTagManagerProperties::DefaultProperties()
 void UTagManagerProperties::InitializeDataTable()
 {
 	UDataTable* DT;
-	FSoftObjectPath UnitDataTablePath = FSoftObjectPath(PRIMITIVE_RENDERING_SETTINGS);
+	FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TAGS_SETTINGS);
 	DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
 	if (DT)
 	{

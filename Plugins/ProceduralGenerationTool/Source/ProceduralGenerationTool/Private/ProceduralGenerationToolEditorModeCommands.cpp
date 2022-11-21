@@ -25,7 +25,11 @@ void FProceduralGenerationToolEditorModeCommands::RegisterCommands()
 	//ToolCommands.Add(InteractiveTool);
 	
 	UI_COMMAND(PrimitiveShapeRenderer, "Generate", "Generates the procedural interior", EUserInterfaceActionType::RadioButton, FInputChord());
+	UI_COMMAND(TagManager, "Tags", "Manage tags used for the auto filling of the rooms", EUserInterfaceActionType::RadioButton, FInputChord());
+
 	ToolCommands.Add(PrimitiveShapeRenderer);
+	ToolCommands.Add(TagManager);
+
 }
 
 TMap<FName, TArray<TSharedPtr<FUICommandInfo>>> FProceduralGenerationToolEditorModeCommands::GetCommands()

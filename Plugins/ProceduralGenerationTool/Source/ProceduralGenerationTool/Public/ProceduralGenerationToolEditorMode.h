@@ -24,7 +24,8 @@ public:
 
 	static FString SimpleToolName;
 	static FString InteractiveToolName;
-	static FString BoxToolName;
+	static FString PSRName;
+	static FString TagManagerName;
 
 	UProceduralGenerationToolEditorMode();
 	virtual ~UProceduralGenerationToolEditorMode();

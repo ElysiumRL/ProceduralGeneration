@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InteractiveToolBuilder.h"
 #include "BaseTools/SingleClickTool.h"
+#include "SettingsExporterImporter.h"
 
 #include "TagManager.generated.h"
 
@@ -25,21 +26,6 @@ public:
 
 };
 
-USTRUCT(Blueprintable,BlueprintType)
-struct FTag
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere, Category = "Tag")
-	FName tag;
-
-	UPROPERTY(EditAnywhere, Category = "Tag")
-	FString description;
-
-};
-
 UCLASS(Transient)
 class PROCEDURALGENERATIONTOOL_API UTagManagerProperties : public UInteractiveToolPropertySet
 {
@@ -47,10 +33,11 @@ class PROCEDURALGENERATIONTOOL_API UTagManagerProperties : public UInteractiveTo
 
 
 public:
-	UTagManagerProperties();
 
-	UPROPERTY(EditAnywhere, Category = "Tag", meta = (DisplayName = "Tag"))
-	FName tag;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "General")
+	TArray<FTag> tags;
+
+	UTagManagerProperties();
 
 	void ExportProperties();
 
@@ -65,7 +52,6 @@ public:
 private:
 
 	UDataTable* propertiesAsTable;
-
 
 };
 

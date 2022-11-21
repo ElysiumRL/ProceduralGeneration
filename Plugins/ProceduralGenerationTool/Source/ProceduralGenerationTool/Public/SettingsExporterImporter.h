@@ -12,6 +12,7 @@
 #include "SettingsExporterImporter.generated.h"
 
 #define PRIMITIVE_RENDERING_SETTINGS TEXT("/ProceduralGenerationTool/Settings/PrimitiveRendererSettings.PrimitiveRendererSettings")
+#define TAGS_SETTINGS TEXT("/ProceduralGenerationTool/Settings/TagsSettings.TagsSettings")
 
 USTRUCT(BlueprintType, Blueprintable)
 struct FPSRSettingsTable : public FTableRowBase
@@ -53,16 +54,32 @@ struct FPSRSettingsTable : public FTableRowBase
 };
 
 
+
+USTRUCT(Blueprintable, BlueprintType)
+struct FTag
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+	FName tag;
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+	FString description;
+
+};
+
+
 USTRUCT(BlueprintType, Blueprintable)
-struct FObjectTags : public FTableRowBase
+struct FTableTags : public FTableRowBase
 {
 	GENERATED_BODY()
 
 
-	UPROPERTY(EditAnywhere, Category = "Tag", meta = (DisplayName = "Category"))
-	FString category;
+public:
 
-	UPROPERTY(EditAnywhere, Category = "Tag", meta = (DisplayName = "Tags"))
-	TArray<FString> tags;
+	UPROPERTY(EditAnywhere, Category = "General")
+	TArray<FTag> tags;
 
 };

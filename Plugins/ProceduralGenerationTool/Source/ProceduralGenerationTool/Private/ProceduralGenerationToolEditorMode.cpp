@@ -15,8 +15,7 @@
 #include "Tools/ProceduralGenerationToolSimpleTool.h"
 #include "Tools/ProceduralGenerationToolInteractiveTool.h"
 #include "Tools/PrimitiveShapeRenderer.h"
-
-// step 2: register a ToolBuilder in FProceduralGenerationToolEditorMode::Enter() below
+#include "Tools/TagManager.h"
 
 
 #define LOCTEXT_NAMESPACE "ProceduralGenerationToolEditorMode"
@@ -25,7 +24,8 @@ const FEditorModeID UProceduralGenerationToolEditorMode::EM_ProceduralGeneration
 
 FString UProceduralGenerationToolEditorMode::SimpleToolName = TEXT("ProceduralGenerationTool_ActorInfoTool");
 FString UProceduralGenerationToolEditorMode::InteractiveToolName = TEXT("ProceduralGenerationTool_MeasureDistanceTool");
-FString UProceduralGenerationToolEditorMode::BoxToolName = TEXT("ProceduralGenerationTool_BoxTool");
+FString UProceduralGenerationToolEditorMode::PSRName = TEXT("ProceduralGenerationTool_PSRTool");
+FString UProceduralGenerationToolEditorMode::TagManagerName = TEXT("ProceduralGenerationTool_TagManagerTool");
 
 
 UProceduralGenerationToolEditorMode::UProceduralGenerationToolEditorMode()
@@ -39,15 +39,16 @@ UProceduralGenerationToolEditorMode::UProceduralGenerationToolEditorMode()
 		true);
 }
 
-
 UProceduralGenerationToolEditorMode::~UProceduralGenerationToolEditorMode()
 {
 }
-
-
 void UProceduralGenerationToolEditorMode::ActorSelectionChangeNotify()
 {
 }
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 void UProceduralGenerationToolEditorMode::Enter()
 {
@@ -63,10 +64,16 @@ void UProceduralGenerationToolEditorMode::Enter()
 
 	//RegisterTool(SampleToolCommands.SimpleTool, SimpleToolName, NewObject<UProceduralGenerationToolSimpleToolBuilder>(this));
 	//RegisterTool(SampleToolCommands.InteractiveTool, InteractiveToolName, NewObject<UProceduralGenerationToolInteractiveToolBuilder>(this));
-	RegisterTool(SampleToolCommands.PrimitiveShapeRenderer, BoxToolName, NewObject<UPrimitiveShapeRendererToolBuilder>(this));
-	// active tool type is not relevant here, we just set to default
-	GetToolManager()->SelectActiveToolType(EToolSide::Left, SimpleToolName);
+	RegisterTool(SampleToolCommands.PrimitiveShapeRenderer, PSRName, NewObject<UPrimitiveShapeRendererToolBuilder>(this));
+	RegisterTool(SampleToolCommands.TagManager, TagManagerName, NewObject<UTagManagerToolBuilder>(this));
+
+	GetToolManager()->SelectActiveToolType(EToolSide::Left, PSRName);
 }
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
 
 void UProceduralGenerationToolEditorMode::CreateToolkit()
 {
