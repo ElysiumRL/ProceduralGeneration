@@ -4,6 +4,8 @@
 #include "EnhancedBox.h"
 #include <Kismet/KismetMathLibrary.h>
 
+DEFINE_LOG_CATEGORY(LogEnhancedBox);
+
 UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation)
 {
 	subdivisions = TArray<UEnhancedBox>();
@@ -114,3 +116,169 @@ FVector UEnhancedBox::RotateBox(const FVector& boxOrigin, FVector fromLocation, 
 
 }
 
+float URectangleBin::GetFillingRatio()
+{
+	if (Volume() == 0.0f)
+	{
+		return 0.0f;
+	}
+
+	float allBoxesVolume = 0.0f;
+	for (int i = 0; i < boxesInBin.Num(); i++)
+	{
+		allBoxesVolume += boxesInBin[i].Volume();
+	}
+
+	return allBoxesVolume / Volume();
+}
+
+bool URectangleBin::PlaceItem(UEnhancedBox& boxToPlace)
+{
+	FVector distance3D;
+
+	bool canFit = false;
+	TArray<EBoxRotationType> allowedRotations = CanPlaceItemWithRotation(boxToPlace);
+	TArray<FVector> margins3DList = TArray<FVector>();
+	TArray<TArray<float>> margins3DTemp = TArray<TArray<float>>();
+	TArray<FVector> margin3D = TArray<FVector>();
+	TArray<FVector> margin2D = TArray<FVector>();
+	TArray<FVector> margin1D = TArray<FVector>();
+
+	int n = 0;
+	int m = 0;
+	int p = 0;
+
+	if (allowedRotations.Num() == 0)
+	{
+		return false;
+	}
+
+	canFit = true;
+
+	if (allowedRotations.Num() == 1)
+	{
+		boxToPlace.rotationType = allowedRotations[0];
+		boxesInBin.Add(boxToPlace);
+		return true;
+	}
+
+	//for (int i = 0; i < allowedRotations.Num(); i++)
+	//{
+	//	boxToPlace.rotationType = (EBoxRotationType)i;
+	//	FVector dimension = boxToPlace.GetDimensionByRotationAxis();
+	//	margin3D = TArray(
+	//		distance3D.X - dimension.X,
+	//		distance3D.Y - dimension.Y,
+	//		distance3D.Z - dimension.Z);
+	//
+	//	TArray<float> sortedMargin3D = TArray<float>();
+	//
+	//	sortedMargin3D.Add(margin3D.X, 0, 0);
+	//	sortedMargin3D.Add(margin3D.Y);
+	//	sortedMargin3D.Add(margin3D.Z);
+	//	
+	//	sortedMargin3D.Sort();
+	//
+	//	margins3DList.Add(margin3D);
+	//	margins3DTemp.Add(sortedMargin3D);
+	//	
+	//	while (p < margins3DTemp.Num())
+	//	{
+	//		margin_3d.append(margins_3d_list_temp[p][0])
+	//			p += 1
+	//
+	//			p = 0
+	//			while p < len(margins_3d_list_temp) :
+	//				if margins_3d_list_temp[p][0] == min(margin_3d) :
+	//					n += 1
+	//					margin_2d.append(margins_3d_list_temp[p][1])
+	//
+	//					p += 1
+	//
+	//					if n == 1:
+	//		p = 0
+	//			while p < len(margins_3d_list_temp) :
+	//				if margins_3d_list_temp[p][0] == min(margin_3d) :
+	//					item.rotation_type = rotation_type_list[p]
+	//					self.items.append(item)
+	//					self.total_items += 1
+	//					return fit
+	//
+	//					p += 1
+	//
+	//				else:
+	//		p = 0
+	//			while p < len(margins_3d_list_temp) :
+	//				if (
+	//					margins_3d_list_temp[p][0] == min(margin_3d) and
+	//					margins_3d_list_temp[p][1] == min(margin_2d)
+	//					) :
+	//					m += 1
+	//					margin_1d.append(margins_3d_list_temp[p][2])
+	//
+	//					p += 1
+	//
+	//					if m == 1:
+	//		p = 0
+	//			while p < len(margins_3d_list_temp) :
+	//				if (
+	//					margins_3d_list_temp[p][0] == min(margin_3d) and
+	//					margins_3d_list_temp[p][1] == min(margin_2d)
+	//					) :
+	//					item.rotation_type = rotation_type_list[p]
+	//					self.items.append(item)
+	//					self.total_items += 1
+	//					return fit
+	//
+	//					p += 1
+	//
+	//				else:
+	//		p = 0
+	//			while p < len(margins_3d_list_temp) :
+	//				if (
+	//					margins_3d_list_temp[p][0] == min(margin_3d) and
+	//					margins_3d_list_temp[p][1] == min(margin_2d) and
+	//					margins_3d_list_temp[p][2] == min(margin_1d)
+	//					) :
+	//					item.rotation_type = rotation_type_list[p]
+	//					self.items.append(item)
+	//					self.total_items += 1
+	//					return fit
+	//
+	//					p += 1
+	//	}
+}
+
+TArray<EBoxRotationType> URectangleBin::CanPlaceItemWithRotation(UEnhancedBox& boxToPlace)
+{
+	bool canFit = false;
+	FVector pivot;
+	TArray<EBoxRotationType> fittingRotations = TArray<EBoxRotationType>();
+
+	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
+	{
+		FVector dimensions = this->GetDimensionByRotationAxis((EBoxRotationType)i);
+
+		if (pivot.X + dimensions.X <= Width()
+			&& pivot.Y + dimensions.Y < Height()
+			&& pivot.Z + dimensions.Z < Length())
+		{
+			canFit = true;
+
+			for (int i = 0; i < boxesInBin.Num(); i++)
+			{
+				if (boxesInBin[i].box.Intersect(boxToPlace.box))
+				{
+					canFit = false;
+					boxToPlace.origin = FVector(0, 0, 0);
+					break;
+				}
+			}
+			if (canFit)
+			{
+				fittingRotations.Add((EBoxRotationType)i);
+			}
+		}
+	}
+	return fittingRotations;
+}
