@@ -11,15 +11,23 @@ DECLARE_LOG_CATEGORY_EXTERN(LogEnhancedBox, Log, All);
 UENUM(Blueprintable)
 enum class EBoxRotationType : uint8
 {
-	LWH, // Length - Width - Height
+	LWH, // Length - Width  - Height
 	HLW, // Height - Length - Width
-	HWL, // Height - Width - Length
-	WHL, // Width - Height - Length
-	WLH, // Width - Length - Height
+	HWL, // Height - Width  - Length
+	WHL, // Width  - Height - Length
+	WLH, // Width  - Length - Height
 	LHW, // Length - Height - Width 
-	ALL
+	ALL  // Index for loops
 };
 
+UENUM(Blueprintable)
+enum class EBoxAxis : uint8
+{
+	WIDTH,
+	HEIGHT,
+	DEPTH,
+	ALL
+};
 
 
 class PROCEDURALGENERATIONTOOL_API UEnhancedBox
@@ -51,9 +59,9 @@ public:
 
 		EBoxRotationType rotationType;
 
-		//Generates all the vertices of the Box
 		void GenerateVertices(const UEnhancedBox& _centralBox);
-
+		
+		//Generates all the vertices of the Box
 		void GenerateVertices();
 
 		void DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _color = FColor::Red, float thickness = 2.f);
@@ -98,32 +106,9 @@ public:
 
 		FORCEINLINE FVector ZNegPoint() { return FVector(Center().X, Center().Y, Center().Z - extent.Z); }
 
-		//Returns a Vector containing the Length - Width - Height (order moving dependingon rotation axis)
-		FORCEINLINE FVector GetDimensionByRotationAxis() 
+		FVector GetDimensionByRotationAxis(const EBoxRotationType& _rotation)
 		{
-			switch (rotationType)
-			{
-			case EBoxRotationType::LWH:
-				return FVector(Length(), Width(), Height());
-			case EBoxRotationType::HLW:
-				return FVector(Height(), Length(), Width());
-			case EBoxRotationType::HWL:
-				return FVector(Height(), Width(), Length());
-			case EBoxRotationType::WHL:
-				return FVector(Width(), Height(), Length());
-			case EBoxRotationType::WLH:
-				return FVector(Width(), Length(), Height());
-			case EBoxRotationType::LHW:
-				return FVector(Length(), Height(), Width());
-			default:
-				UE_LOG(LogEnhancedBox, Error, TEXT("Invalid Rotation Type"));
-				return FVector(0,0,0);
-			}
-		}
-
-		FORCEINLINE FVector GetDimensionByRotationAxis(const EBoxRotationType& rotation)
-		{
-			switch (rotation)
+			switch (_rotation)
 			{
 			case EBoxRotationType::LWH:
 				return FVector(Length(), Width(), Height());
@@ -143,6 +128,17 @@ public:
 			}
 		}
 
+		//Returns a Vector containing the Length - Width - Height (order moving dependingon rotation axis)
+		FVector GetDimensionByRotationAxis() 
+		{
+			return GetDimensionByRotationAxis(rotationType);
+		}
+
+		//Makes a box from the static mesh approx size
+		static UEnhancedBox MakeFromStaticMesh(UStaticMesh* mesh);
+
+
+
 };
 
 
@@ -157,6 +153,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General")
 	TArray<UEnhancedBox> boxesInBin;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General")
+	TArray<AActor*> actorsInBin;
+
+
 	UFUNCTION(BlueprintPure)
 	float GetFillingRatio();
 
@@ -164,7 +164,6 @@ public:
 
 	TArray<EBoxRotationType> CanPlaceItemWithRotation(UEnhancedBox& boxToPlace);
 
-
-
+	void PackBin();
 };
 
