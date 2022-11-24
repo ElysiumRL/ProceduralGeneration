@@ -116,10 +116,22 @@ FVector UEnhancedBox::RotateBox(const FVector& boxOrigin, FVector fromLocation, 
 
 }
 
-UEnhancedBox UEnhancedBox::MakeFromStaticMesh(UStaticMesh* mesh,FVector origin = FVector(0,0,0))
+UEnhancedBox UEnhancedBox::MakeFromStaticMesh(UStaticMesh* mesh, FVector origin, float rotation)
 {
-	UEnhancedBox newBox = UEnhancedBox()
-	mesh->PositiveBoundsExtension
+	return UEnhancedBox(origin, mesh->GetPositiveBoundsExtension(), rotation, FIntVector(0, 0, 0));
+}
+
+float URectangleBin::GetCurrentCapacity()
+{
+	float capacity = 0.0f;
+
+	for (int i = 0; i < items.Num(); i++)
+	{
+		capacity += items[i]->weight;
+	}
+
+	return capacity;
+
 }
 
 float URectangleBin::GetFillingRatio()
@@ -131,25 +143,65 @@ float URectangleBin::GetFillingRatio()
 
 	float allBoxesVolume = 0.0f;
 
-	for (int i = 0; i < boxesInBin.Num(); i++)
+	for (int i = 0; i < items.Num(); i++)
 	{
-		allBoxesVolume += boxesInBin[i].Volume();
+		allBoxesVolume += items[i]->Volume();
 	}
 
 	return allBoxesVolume / Volume();
 }
 
-bool URectangleBin::PlaceItem(UEnhancedBox& boxToPlace)
+bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPosition)
 {
+	bool fit = false;
+	FVector validItemPosition = FVector();
+	UEnhancedBox actorAsBox;
 
+	actorAsBox.origin = initialPosition;
 
+	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
+	{
+		actorAsBox.rotationType = (EBoxRotationType)i;
+		FVector dimension = boxToPlace->GetDimensionByRotationAxis();
+		if (Width() < initialPosition.X + dimension.X ||
+			Height() < initialPosition.Y + dimension.Y ||
+			Length() < initialPosition.Z + dimension.Z)
+		{
+			continue;
+		}
 
+		fit = true;
 
+		for (int j = 0; j < items.Num(); j++)
+		{
+			if (items[i]->box.Intersect(actorAsBox.box))
+			{
+				fit = false;
+				break;
+			}
+		}
 
+		if (fit)
+		{
+			if (this->GetCurrentCapacity() + boxToPlace->weight > maxCapacity)
+			{
+				fit = false;
+				return fit;
+			}
+		}
 
+		if (!fit)
+		{
+			actorAsBox.origin = validItemPosition;
+		}
+		return fit;
+	}
+	if (!fit)
+	{
+		actorAsBox.origin = validItemPosition;
+	}
 
-
-
+	return fit;
 }
 
 TArray<EBoxRotationType> URectangleBin::CanPlaceItemWithRotation(UEnhancedBox& boxToPlace)
@@ -168,9 +220,9 @@ TArray<EBoxRotationType> URectangleBin::CanPlaceItemWithRotation(UEnhancedBox& b
 		{
 			canFit = true;
 
-			for (int j = 0; j < boxesInBin.Num(); j++)
+			for (int j = 0; j < items.Num(); j++)
 			{
-				if (boxesInBin[j].box.Intersect(boxToPlace.box))
+				if (items[j]->box.Intersect(boxToPlace.box))
 				{
 					canFit = false;
 					boxToPlace.origin = FVector(0, 0, 0);
@@ -189,8 +241,67 @@ TArray<EBoxRotationType> URectangleBin::CanPlaceItemWithRotation(UEnhancedBox& b
 void URectangleBin::PackBin()
 {
 	bool fitted = false;
+}
 
-	
+bool UPacker::PackToBin(URectangleBin* bin, URectangleItem* item)
+{
+	bool fit = false;
+	for (int i = 0; i < (int)EBoxAxis::ALL; i++)
+	{
+		EBoxAxis currentAxis = (EBoxAxis)i;
+		for (int j = 0; j < bin->items.Num(); j++)
+		{
+			URectangleItem* itemInBin = bin->items[i];
+			FVector pivotPoint = FVector();
 
+			FVector dimension = itemInBin->GetDimensionByRotationAxis();
+			switch (currentAxis)
+			{
+			case EBoxAxis::WIDTH:
+				pivotPoint = FVector
+				(
+					itemInBin->origin.X + dimension.X,
+					itemInBin->origin.Y,
+					itemInBin->origin.Z
+				);
+				break;
+			case EBoxAxis::HEIGHT:
+				pivotPoint = FVector
+				(
+					itemInBin->origin.X,
+					itemInBin->origin.Y + dimension.Y,
+					itemInBin->origin.Z
+				);
+				break;
+			case EBoxAxis::DEPTH:
+				pivotPoint = FVector
+				(
+					itemInBin->origin.X,
+					itemInBin->origin.Y,
+					itemInBin->origin.Z + dimension.Z
+				);
+				break;
+			case EBoxAxis::ALL:
+			default:
+				UE_LOG(LogTemp, Warning, L"Invalid Box Axis");
+				break;
+			}
+			if (bin->PlaceItem(item, pivotPoint))
+			{
+				fit = true;
+				break;
+			}
+		}
+		if (fit)
+		{
+			break;
+		}
+		if (!fit)
+		{
+			unfitItems.Add(item);
+		}
+	}
+
+	return fit;
 
 }

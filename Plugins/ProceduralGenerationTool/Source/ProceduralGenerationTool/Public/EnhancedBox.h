@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Engine/DataTable.h"
 #include <ToolContextInterfaces.h>
+
+#include "EnhancedBox.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogEnhancedBox, Log, All);
 
@@ -29,10 +32,10 @@ enum class EBoxAxis : uint8
 	ALL
 };
 
-
-class PROCEDURALGENERATIONTOOL_API UEnhancedBox
+UCLASS()
+class PROCEDURALGENERATIONTOOL_API UEnhancedBox : public UObject
 {
-
+	GENERATED_BODY()
 public:
 
 		UEnhancedBox() = default;
@@ -135,35 +138,87 @@ public:
 		}
 
 		//Makes a box from the static mesh approx size
-		static UEnhancedBox MakeFromStaticMesh(UStaticMesh* mesh);
+		FORCEINLINE static UEnhancedBox MakeFromStaticMesh(UStaticMesh* mesh, FVector origin = FVector(0, 0, 0), float rotation = 0.0f);
 
 
+
+};
+
+UCLASS()
+class PROCEDURALGENERATIONTOOL_API URectangleItem : public UEnhancedBox
+{
+	GENERATED_BODY()
+
+public:
+
+
+	float weight = 0.0f;
+
+	TSubclassOf<AActor*> linkedActor;
 
 };
 
 
 //Bin class used for the Rectangle Packing (Bin Packing) algorithm
+UCLASS()
 class PROCEDURALGENERATIONTOOL_API URectangleBin : public UEnhancedBox
 {
+	GENERATED_BODY()
+
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General")
-	int maxCapacity = -1;
+	float maxCapacity = -1;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General")
-	TArray<UEnhancedBox> boxesInBin;
+	TArray<URectangleItem*> items;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General")
-	TArray<AActor*> actorsInBin;
+	float GetCurrentCapacity();
 
-
-	UFUNCTION(BlueprintPure)
 	float GetFillingRatio();
 
-	bool PlaceItem(UEnhancedBox& boxToPlace);
+	bool PlaceItem(URectangleItem* boxToPlace, FVector initialPosition);
 
 	TArray<EBoxRotationType> CanPlaceItemWithRotation(UEnhancedBox& boxToPlace);
 
 	void PackBin();
 };
+
+UCLASS()
+class PROCEDURALGENERATIONTOOL_API UPacker : public UObject
+{
+	GENERATED_BODY()
+
+public:
+
+
+	float maxCapacity = -1;
+
+	TArray<URectangleBin*> bins;
+
+	TArray<URectangleItem*> items;
+
+	TArray<URectangleItem*> unfitItems;
+
+	bool PackToBin(URectangleBin* bin, URectangleItem* item);
+};
+
+USTRUCT(BlueprintType,Blueprintable)
+struct FPackerItemSettings : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float weight;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Use Actor instead of Mesh"))
+	bool useActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "!useActor"))
+	TSubclassOf<UStaticMesh> mesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "useActor"))
+	TSubclassOf<AActor> actor;
+
+};
+
+
 
