@@ -32,10 +32,8 @@ enum class EBoxAxis : uint8
 	ALL
 };
 
-UCLASS()
-class PROCEDURALGENERATIONTOOL_API UEnhancedBox : public UObject
+class PROCEDURALGENERATIONTOOL_API UEnhancedBox
 {
-	GENERATED_BODY()
 public:
 
 		UEnhancedBox() = default;
@@ -144,26 +142,24 @@ public:
 
 };
 
-UCLASS()
 class PROCEDURALGENERATIONTOOL_API URectangleItem : public UEnhancedBox
 {
-	GENERATED_BODY()
 
 public:
 
-
 	float weight = 0.0f;
 
-	TSubclassOf<AActor*> linkedActor;
+	TSubclassOf<AActor> linkedActor;
+	
+	//Makes a box from the static mesh approx size
+	FORCEINLINE void MakeFromStaticMesh(UStaticMesh* mesh, FVector _origin = FVector(0, 0, 0), float _rotation = 0.0f);
 
 };
 
 
 //Bin class used for the Rectangle Packing (Bin Packing) algorithm
-UCLASS()
 class PROCEDURALGENERATIONTOOL_API URectangleBin : public UEnhancedBox
 {
-	GENERATED_BODY()
 
 public:
 
@@ -182,21 +178,18 @@ public:
 	void PackBin();
 };
 
-UCLASS()
-class PROCEDURALGENERATIONTOOL_API UPacker : public UObject
+class PROCEDURALGENERATIONTOOL_API Packer
 {
-	GENERATED_BODY()
 
 public:
 
-
 	float maxCapacity = -1;
 
-	TArray<URectangleBin*> bins;
+	TArray<URectangleBin> bins;
 
-	TArray<URectangleItem*> items;
+	TArray<URectangleItem> items;
 
-	TArray<URectangleItem*> unfitItems;
+	TArray<URectangleItem> unfitItems;
 
 	bool PackToBin(URectangleBin* bin, URectangleItem* item);
 };
@@ -206,16 +199,18 @@ struct FPackerItemSettings : public FTableRowBase
 {
 	GENERATED_BODY()
 
+public:
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float weight;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Use Actor instead of Mesh"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool useActor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "!useActor"))
-	TSubclassOf<UStaticMesh> mesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMesh* mesh;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "useActor"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<AActor> actor;
 
 };

@@ -9,17 +9,15 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPackerComponent, Log, All)
 
-UCLASS(Blueprintable, BlueprintType,editinlinenew, meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, BlueprintType, meta = (BlueprintSpawnableComponent))
 class PROCEDURALGENERATIONTOOL_API UBinPackerComponent : public UBoxComponent
 {
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UPacker* packerInstance;
+	Packer packerInstance;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	URectangleBin* bin;
+	URectangleBin bin;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UDataTable* settings;
@@ -30,11 +28,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int maxItems = 99;
 
-	UFUNCTION(BlueprintCallable, Category = "AHelp")
+	UFUNCTION(BlueprintCallable, CallInEditor, Category = "AHelp")
 	void ForceInitialize();
 
-	UFUNCTION(BlueprintCallable, Category = "AHelp")
+	UFUNCTION(BlueprintCallable, CallInEditor, Category = "AHelp",meta = (CallableWithoutWorldContext))
 	void StartPacking();
+	
+	UFUNCTION(BlueprintCallable, CallInEditor, Category = "AHelp")
+	void TestFunction();
+
+
 
 	void GenerateItem(FPackerItemSettings* row);
 

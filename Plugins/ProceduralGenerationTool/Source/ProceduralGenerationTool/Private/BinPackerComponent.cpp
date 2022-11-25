@@ -10,39 +10,50 @@ void UBinPackerComponent::ForceInitialize()
 {
 	if (settings == nullptr)
 	{
-		UE_LOG(LogPackerComponent, Warning, L"Settings not found ! Cancelling Packing");
+		UE_LOG(LogPackerComponent, Warning, L"Settings not found !");
 	}
 }
 
 void UBinPackerComponent::StartPacking()
 {
+	bin.extent = FVector(1000, 1000, 1000);
 	ForceInitialize();
-	packerInstance->bins.Reset();
-	packerInstance->bins.Add(bin);
+	packerInstance.bins.Reset();
+	packerInstance.items.Reset();
+	packerInstance.bins.Add(bin);
 
 	for (int i = 0; i < maxItems; i++)
 	{
 		TArray<FPackerItemSettings*> rows;
 		settings->GetAllRows<FPackerItemSettings>(L"", rows);
 		
-		int itemToSpawnIndex = UKismetMathLibrary::RandomIntegerInRange(0, rows.Num());
+		int itemToSpawnIndex = UKismetMathLibrary::RandomIntegerInRange(0, rows.Num() - 1);
 
 		GenerateItem(rows[itemToSpawnIndex]);
 	}
 }
 
+void UBinPackerComponent::TestFunction()
+{
+	UE_LOG(LogTemp, Warning, L"Works");
+}
+
 void UBinPackerComponent::GenerateItem(FPackerItemSettings* row)
 {
-	URectangleItem* newItem = NewObject<URectangleItem>();
+	URectangleItem* newItem = new URectangleItem();
 
-	if (row->useActor)
-	{
-		newItem->linkedActor = row->actor;
-		newItem->extent = FVector(100, 100, 100);
-	}
-	if (packerInstance->PackToBin(bin, newItem))
+	newItem->linkedActor = row->actor;
+	newItem->extent = FVector(100, 100, 100);
+	//newItem->MakeFromStaticMesh(row->mesh, newItem->origin);
+	bin.items.Add(newItem);
+
+	if (packerInstance.PackToBin(&bin, newItem))
 	{
 		AActor* actor = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(),newItem->origin, FRotator());
-		UE_LOG(LogPackerComponent, Warning, L"Actor Spawned");
+		UE_LOG(LogPackerComponent, Display, L"Actor Spawned");
+	}
+	else
+	{
+		UE_LOG(LogPackerComponent, Warning, L"Actor not spawned");
 	}
 }
