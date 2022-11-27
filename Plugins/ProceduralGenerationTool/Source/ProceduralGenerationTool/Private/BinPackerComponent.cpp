@@ -49,7 +49,12 @@ void UBinPackerComponent::GenerateItem(FPackerItemSettings* row)
 
 	if (packerInstance.PackToBin(&bin, newItem))
 	{
-		AActor* actor = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(),newItem->origin, FRotator());
+		FActorSpawnParameters spawnParams = FActorSpawnParameters();
+		spawnParams.Owner = this->GetOwner();
+		spawnParams.Instigator = this->GetOwner()->GetInstigator();
+
+
+		GetWorld()->SpawnActor<AActor>(newItem->linkedActor, newItem->origin, FRotator(), spawnParams);
 		UE_LOG(LogPackerComponent, Display, L"Actor Spawned");
 	}
 	else

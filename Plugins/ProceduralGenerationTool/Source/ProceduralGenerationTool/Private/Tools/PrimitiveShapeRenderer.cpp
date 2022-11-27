@@ -122,10 +122,18 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 
 	GenerationUtilities::randomSeedRNG = FRandomStream(Properties->randomSeedValue);
 
-
-
-	//Generation
-	GenerationUtilities::Subdivide(&centralBox, &centralBox, 4, GenerationUtilities::RandomSubdivision());
+	if (Properties->splitBox)
+	{
+		for (int i = 0; i < subdivisionBoxes.Num(); i++)
+		{
+			GenerationUtilities::Subdivide(&subdivisionBoxes[i], &subdivisionBoxes[i], 4, GenerationUtilities::RandomSubdivision());
+		}
+	}
+	else
+	{
+		//Generation
+		GenerationUtilities::Subdivide(&centralBox, &centralBox, 4, GenerationUtilities::RandomSubdivision());
+	}
 
 	//Logging 
 	//UE_LOG(LogShapeRenderer, Warning, TEXT("Generation Done"));
@@ -134,10 +142,6 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 	//{
 	//	UE_LOG(LogShapeRenderer, Warning, TEXT("%s"), *GenerationUtilities::results[i].ToString());
 	//}
-
-
-	UBoxedRoom room;
-
 
 	for (int i = 0; i < GenerationUtilities::results.Num(); i++)
 	{
@@ -446,17 +450,19 @@ FRandomStream GenerationUtilities::randomSeedRNG;
 
 TArray<UEnhancedBox*> GenerationUtilities::results = TArray<UEnhancedBox*>();
 
-void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide, int iterations, ESubdivisionType subdivisionType, bool deleteSubdividedBounds)
+void GenerationUtilities::Subdivide(
+	UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide,
+	int iterations, ESubdivisionType subdivisionType, bool deleteSubdividedBounds)
 {
 	iterations--;
 	//Exit Condition
-	if (iterations == 0 /*|| (iterations -2 <= 0 && UKismetMathLibrary::RandomFloat() <= 0.25f)*/)
+	if (iterations == 0)
 	{
 		GenerationUtilities::results.Add(boxToSubdivide);
 		return;
 	}
-	
-	//Recursive Subdivision
+
+	//Subdivision size constraint
 	int minSubdivisionWidth = 0.3f * boxToSubdivide->Width();
 	int maxSubdivisionWidth = 0.7f * boxToSubdivide->Width();
 
@@ -465,31 +471,12 @@ void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSub
 			GenerationUtilities::randomSeedRNG) / bounds->Width(), subdivisionType);
 	for (int i = 0; i < subdivisions.Num(); i++)
 	{
-		//Random Version
-		/**
-		if (UKismetMathLibrary::RandomFloat() > 0.5f)
-		{
-			subdivisionType = subdivisionType == ESubdivisionType::Horizontal ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
-			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType);
-		}
-		else
-		{
-			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision());
-		}
-		**/
-
-		//Height Ratio Version (provides better rectangles than random version
-		//Default ratio is 1.125 (can be adjusted between 1.05 and 1.4 at extreme cases)
-		subdivisionType = subdivisions[i]->HeightRatio() >= 1.125f ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
+		subdivisionType = subdivisions[i]->HeightRatio() >= 1.125f ? 
+			ESubdivisionType::Vertical : 
+			ESubdivisionType::Horizontal;
 		
-		if (UKismetMathLibrary::RandomFloatFromStream(GenerationUtilities::randomSeedRNG) >= 0.0f)
-		{
-			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType, deleteSubdividedBounds);
-		}
-		else
-		{
-			GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision(), deleteSubdividedBounds);
-		}
+		GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], 
+			iterations, subdivisionType, deleteSubdividedBounds);
 	}
 }
 
@@ -611,11 +598,6 @@ void GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* 
 	//}
 	//wall->windowSize = FVector(box.extent.X * 1.8f, box.extent.Y * 1.8f, box.extent.Z + 150);
 	//wall->windowLocation = FVector(0, 0, 0);
-
-	//Create a wall with a specific size for each part of a box
-	//AAAAAAAAAAAAA
-
-	// x|  -  |
 
 	float wallThickness = 10.f;
 	
