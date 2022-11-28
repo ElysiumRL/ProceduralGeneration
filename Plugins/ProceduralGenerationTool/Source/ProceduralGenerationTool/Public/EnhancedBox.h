@@ -89,23 +89,15 @@ public:
 
 		FORCEINLINE float HeightRatio() { return Width() == 0.0f ? 0.0f : Height() / Width(); }
 		
-		FORCEINLINE FVector Center() { return box.GetCenter(); }
-
-		FORCEINLINE FVector TopLeft() { return box.Min; }
-
-		FORCEINLINE FVector TopRight() { return FVector(box.Min.X, box.Max.Y, box.Min.Z); }
-
-		FORCEINLINE FVector XPosPoint() { return FVector(Center().X + extent.X, Center().Y, Center().Z); }
-
-		FORCEINLINE FVector XNegPoint() { return FVector(Center().X - extent.X, Center().Y, Center().Z); }
-
-		FORCEINLINE FVector YPosPoint() { return FVector(Center().X, Center().Y + extent.Y, Center().Z); }
-
-		FORCEINLINE FVector YNegPoint() { return FVector(Center().X, Center().Y - extent.Y, Center().Z); }
-
-		FORCEINLINE FVector ZPosPoint() { return FVector(Center().X, Center().Y, Center().Z + extent.Z); }
-
-		FORCEINLINE FVector ZNegPoint() { return FVector(Center().X, Center().Y, Center().Z - extent.Z); }
+		FORCEINLINE const FVector Center() { return box.GetCenter(); }
+		FORCEINLINE const FVector TopLeft() { return box.Min; }
+		FORCEINLINE const FVector TopRight() { return FVector(box.Min.X, box.Max.Y, box.Min.Z); }
+		FORCEINLINE const FVector XPosPoint() { return FVector(Center().X + extent.X, Center().Y, Center().Z); }
+		FORCEINLINE const FVector XNegPoint() { return FVector(Center().X - extent.X, Center().Y, Center().Z); }
+		FORCEINLINE const FVector YPosPoint() { return FVector(Center().X, Center().Y + extent.Y, Center().Z); }
+		FORCEINLINE const FVector YNegPoint() { return FVector(Center().X, Center().Y - extent.Y, Center().Z); }
+		FORCEINLINE const FVector ZPosPoint() { return FVector(Center().X, Center().Y, Center().Z + extent.Z); }
+		FORCEINLINE const FVector ZNegPoint() { return FVector(Center().X, Center().Y, Center().Z - extent.Z); }
 
 		FVector GetDimensionByRotationAxis(const EBoxRotationType& _rotation)
 		{
@@ -129,7 +121,7 @@ public:
 			}
 		}
 
-		//Returns a Vector containing the Length - Width - Height (order moving dependingon rotation axis)
+		//Returns a Vector containing the Length - Width - Height (order moving depending on rotation axis)
 		FVector GetDimensionByRotationAxis() 
 		{
 			return GetDimensionByRotationAxis(rotationType);
@@ -175,7 +167,6 @@ public:
 
 	TArray<EBoxRotationType> CanPlaceItemWithRotation(UEnhancedBox& boxToPlace);
 
-	void PackBin();
 };
 
 class PROCEDURALGENERATIONTOOL_API Packer
@@ -185,11 +176,11 @@ public:
 
 	float maxCapacity = -1;
 
-	TArray<URectangleBin> bins;
+	TArray<URectangleBin*> bins;
 
-	TArray<URectangleItem> items;
+	TArray<URectangleItem*> items;
 
-	TArray<URectangleItem> unfitItems;
+	TArray<URectangleItem*> unfitItems;
 
 	bool PackToBin(URectangleBin* bin, URectangleItem* item);
 };

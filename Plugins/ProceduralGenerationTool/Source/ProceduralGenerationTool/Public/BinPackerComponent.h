@@ -16,9 +16,7 @@ class PROCEDURALGENERATIONTOOL_API UBinPackerComponent : public UBoxComponent
 	
 public:
 	Packer packerInstance;
-	
-	URectangleBin bin;
-	
+		
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UDataTable* settings;
 
@@ -28,16 +26,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int maxItems = 99;
 
-	UFUNCTION(BlueprintCallable, CallInEditor, Category = "AHelp")
-	void ForceInitialize();
-
-	UFUNCTION(BlueprintCallable, CallInEditor, Category = "AHelp",meta = (CallableWithoutWorldContext))
+	UFUNCTION(BlueprintCallable, CallInEditor, meta = (CallableWithoutWorldContext))
 	void StartPacking();
-	
-	UFUNCTION(BlueprintCallable, CallInEditor, Category = "AHelp")
-	void TestFunction();
-
-
 
 	void GenerateItem(FPackerItemSettings* row);
 
