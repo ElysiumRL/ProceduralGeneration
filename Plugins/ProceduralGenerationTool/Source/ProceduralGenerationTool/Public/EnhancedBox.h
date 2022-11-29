@@ -14,13 +14,13 @@ DECLARE_LOG_CATEGORY_EXTERN(LogEnhancedBox, Log, All);
 UENUM(Blueprintable)
 enum class EBoxRotationType : uint8
 {
-	LWH, // Length - Width  - Height
-	HLW, // Height - Length - Width
-	HWL, // Height - Width  - Length
-	WHL, // Width  - Height - Length
-	WLH, // Width  - Length - Height
-	LHW, // Length - Height - Width 
-	ALL  // Index for loops
+	WHL = 0, // Width  - Height - Length
+	HLW = 1, // Height - Length - Width
+	HWL = 2, // Height - Width  - Length
+	LHW = 3, // Length - Height - Width 
+	LWH = 4, // Length - Width  - Height
+	WLH = 5, // Width  - Length - Height
+	ALL = 6  // Index for loops
 };
 
 UENUM(Blueprintable)
@@ -58,7 +58,7 @@ public:
 
 		FColor color;
 
-		EBoxRotationType rotationType;
+		EBoxRotationType rotationType = EBoxRotationType::WHL;
 
 		void GenerateVertices(const UEnhancedBox& _centralBox);
 		
@@ -79,11 +79,11 @@ public:
 
 		FORCEINLINE float Perimeter2D() { return 2 * extent.X + 2 * extent.Y; }
 
-		FORCEINLINE float Width() { return extent.X; }
+		FORCEINLINE const float Width() const { return extent.X; }
 
-		FORCEINLINE float Height() { return extent.Y; }
+		FORCEINLINE const float Height() const { return extent.Y; }
 		
-		FORCEINLINE float Length() { return extent.Z; }
+		FORCEINLINE const float Length() const { return extent.Z; }
 
 		FORCEINLINE float WidthRatio() { return Height() == 0.0f ? 0.0f : Width() / Height(); }
 

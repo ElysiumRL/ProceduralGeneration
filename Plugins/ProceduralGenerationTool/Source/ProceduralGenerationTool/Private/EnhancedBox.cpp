@@ -154,38 +154,39 @@ float URectangleBin::GetFillingRatio()
 bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPosition)
 {
 	bool fit = false;
-	FVector validItemPosition = FVector(0, 0, 0);
+	//FVector validItemPosition = FVector(0, 0, 0);
 
 	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
 	{
 		boxToPlace->rotationType = (EBoxRotationType)i;
-		FVector dimension = boxToPlace->GetDimensionByRotationAxis();
-		if (Width() < initialPosition.X + dimension.X ||
+		FVector dimension = boxToPlace->GetDimensionByRotationAxis((EBoxRotationType)i);
+
+		if (Width()  < initialPosition.X + dimension.X ||
 			Height() < initialPosition.Y + dimension.Y ||
 			Length() < initialPosition.Z + dimension.Z)
 		{
 
 			continue;
 		}
-		
-		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension);
+
+		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension / 2.0f);
 		boxToPlace->origin = initialPosition;
 		boxToPlace->extent = boxToPlace->box.GetExtent();
-		
+
 		fit = true;
 
 		for (int j = 0; j < items.Num(); j++)
 		{
-			UE_LOG(LogEnhancedBox, Warning,
-				TEXT("[ BoxToPlace : O - %s E - %s ] [ Items(j) : O - %s E - %s "),
-				*boxToPlace->origin.ToString(),
-				*boxToPlace->extent.ToString(),
-				*items[j]->origin.ToString(),
-				*items[j]->extent.ToString());
-
-			if (items[j]->box.Intersect(boxToPlace->box))
+			//UE_LOG(LogEnhancedBox, Warning,
+			//	TEXT("[ BoxToPlace : O - %s E - %s ] ///// [ Items(j) : O - %s E - %s ]"),
+			//	*boxToPlace->origin.ToString(),
+			//	*boxToPlace->extent.ToString(),
+			//	*items[j]->origin.ToString(),
+			//	*items[j]->extent.ToString());
+			
+			if (boxToPlace->box.Intersect(items[j]->box))
 			{
-				UE_LOG(LogEnhancedBox, Error, L"Intersection found !");
+				//UE_LOG(LogEnhancedBox, Error, L"Intersection found !");
 				fit = false;
 				break;
 			}
@@ -261,10 +262,11 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 		if (bin->PlaceItem(item, FVector(0,0,0)))
 		{
 			fit = true;
-			item->origin = FVector(0, 0, 0);
+			//item->origin = FVector(0, 0, 0);
 		}
 		return fit;
 	}
+	FVector pivotPoint = FVector();
 
 	for (int i = 0; i < (int)EBoxAxis::ALL; i++)
 	{
@@ -272,49 +274,51 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 		for (int j = 0; j < bin->items.Num(); j++)
 		{
 			URectangleItem* itemInBin = bin->items[j];
-			FVector pivotPoint = FVector();
 
-			FVector dimension = itemInBin->GetDimensionByRotationAxis();
+			FVector* dimension = new FVector(itemInBin->GetDimensionByRotationAxis() + 0.01f);
+			if ((*dimension).X > 0.1f)
+			{
+				UE_LOG(LogEnhancedBox, Warning, L"%s", *(*dimension).ToString());
+			}
 			switch (currentAxis)
 			{
 			case EBoxAxis::WIDTH:
 				pivotPoint = FVector
 				(
-					itemInBin->origin.X + dimension.X,
+					itemInBin->origin.X + (*dimension).X,
 					itemInBin->origin.Y,
 					itemInBin->origin.Z
 				);
-				UE_LOG(LogEnhancedBox, Warning, TEXT("%s"), *pivotPoint.ToString());
 				break;
 			case EBoxAxis::HEIGHT:
 				pivotPoint = FVector
 				(
 					itemInBin->origin.X,
-					itemInBin->origin.Y + dimension.Y,
+					itemInBin->origin.Y + (*dimension).Y,
 					itemInBin->origin.Z
 				);
-				UE_LOG(LogEnhancedBox, Warning, TEXT("%s"), *pivotPoint.ToString());
 				break;
 			case EBoxAxis::DEPTH:
 				pivotPoint = FVector
 				(
 					itemInBin->origin.X,
 					itemInBin->origin.Y,
-					itemInBin->origin.Z + dimension.Z
+					itemInBin->origin.Z + (*dimension).Z
 				);
-				UE_LOG(LogEnhancedBox,Warning, TEXT("%s"), *pivotPoint.ToString());
 				break;
 			case EBoxAxis::ALL:
 			default:
 				UE_LOG(LogEnhancedBox, Warning, L"Invalid Box Axis");
 				break;
 			}
+			//UE_LOG(LogEnhancedBox, Warning, TEXT("%s"), *pivotPoint.ToString());
+
 			item->origin = pivotPoint;
 
 			if (bin->PlaceItem(item, pivotPoint))
 			{
 				fit = true;
-				item->origin = pivotPoint;
+				//item->origin = pivotPoint;
 				break;
 			}
 		}

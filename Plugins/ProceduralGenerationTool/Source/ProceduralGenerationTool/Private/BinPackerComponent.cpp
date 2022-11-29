@@ -14,7 +14,7 @@ void UBinPackerComponent::StartPacking()
 	
 	//Create bin
 	URectangleBin* bin = new URectangleBin();
-	bin->extent = FVector(1000, 1000, 1000);
+	bin->extent = FVector(10000, 10000, 10000);
 
 	packerInstance.bins.Add(bin);
 	
@@ -44,18 +44,17 @@ void UBinPackerComponent::StartPacking()
 			FActorSpawnParameters spawnParams = FActorSpawnParameters();
 			spawnParams.Owner = this->GetOwner();
 			spawnParams.Instigator = this->GetOwner()->GetInstigator();
-			GetWorld()->SpawnActor<AActor>(item->linkedActor, item->origin, FRotator(), spawnParams);
+			GetWorld()->SpawnActor<AActor>(item->linkedActor, (*item).origin, FRotator(), spawnParams);
 			UE_LOG(LogPackerComponent, Display, L"Actor Spawned");
 			packerInstance.bins[0]->items.Add(item);
-			packerInstance.items.Remove(item);
+			//packerInstance.items.Remove(item);
 		}
 		else
 		{
-			packerInstance.unfitItems.Add(item);
-			packerInstance.items.Remove(item);
+			//packerInstance.unfitItems.Add(item);
+			//packerInstance.items.Remove(item);
 			UE_LOG(LogPackerComponent, Warning, L"Actor not spawned");
 		}
-		i--;
 	}
 }
 
@@ -66,7 +65,7 @@ void UBinPackerComponent::GenerateItem(FPackerItemSettings* row)
 	newItem->extent = FVector(100, 100, 100);
 	newItem->origin = FVector(0, 0, 0);
 
-	newItem->box = FBox::BuildAABB(newItem->origin, newItem->extent);
+	newItem->box = FBox::BuildAABB(newItem->origin, newItem->extent / 2.0f);
 
 
 	//newItem->MakeFromStaticMesh(row->mesh, newItem->origin);
