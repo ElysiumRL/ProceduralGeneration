@@ -14,7 +14,7 @@ void UBinPackerComponent::StartPacking()
 	
 	//Create bin
 	URectangleBin* bin = new URectangleBin();
-	bin->extent = FVector(10000, 10000, 10000);
+	bin->extent = FVector(1000, 1000, 1000);
 
 	packerInstance.bins.Add(bin);
 	
@@ -65,9 +65,9 @@ void UBinPackerComponent::GenerateItem(FPackerItemSettings* row)
 	newItem->extent = FVector(100, 100, 100);
 	newItem->origin = FVector(0, 0, 0);
 
-	newItem->box = FBox::BuildAABB(newItem->origin, newItem->extent / 2.0f);
+	newItem->box = FBox::BuildAABB((*newItem).origin, (*newItem).extent / 2.0f);
 
 
-	//newItem->MakeFromStaticMesh(row->mesh, newItem->origin);
+	newItem->MakeFromStaticMesh(row->mesh, newItem->origin);
 	packerInstance.items.Add(newItem);
 }

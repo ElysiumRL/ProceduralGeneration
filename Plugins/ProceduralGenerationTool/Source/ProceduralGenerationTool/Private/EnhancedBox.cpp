@@ -155,6 +155,9 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 {
 	bool fit = false;
 	//FVector validItemPosition = FVector(0, 0, 0);
+	
+	boxToPlace->origin = initialPosition;
+	boxToPlace->extent = boxToPlace->box.GetExtent() * 2;
 
 	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
 	{
@@ -171,10 +174,9 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 
 		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension / 2.0f);
 		boxToPlace->origin = initialPosition;
-		boxToPlace->extent = boxToPlace->box.GetExtent();
+		boxToPlace->extent = boxToPlace->box.GetExtent() * 2;
 
 		fit = true;
-
 		for (int j = 0; j < items.Num(); j++)
 		{
 			//UE_LOG(LogEnhancedBox, Warning,
@@ -252,6 +254,7 @@ TArray<EBoxRotationType> URectangleBin::CanPlaceItemWithRotation(UEnhancedBox& b
 	return fittingRotations;
 }
 
+#define MIN_OFFSET 0.001f
 
 bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 {
@@ -266,44 +269,43 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 		}
 		return fit;
 	}
-	FVector pivotPoint = FVector();
+	FVector pivotPoint = FVector(0,0,0);
 
 	for (int i = 0; i < (int)EBoxAxis::ALL; i++)
 	{
 		EBoxAxis currentAxis = (EBoxAxis)i;
 		for (int j = 0; j < bin->items.Num(); j++)
 		{
-			URectangleItem* itemInBin = bin->items[j];
+			FVector* dimension = new FVector(bin->items[j]->GetDimensionByRotationAxis());
 
-			FVector* dimension = new FVector(itemInBin->GetDimensionByRotationAxis() + 0.01f);
-			if ((*dimension).X > 0.1f)
-			{
-				UE_LOG(LogEnhancedBox, Warning, L"%s", *(*dimension).ToString());
-			}
+			//if ((*dimension).X > 0.1f)
+			//{
+			//	UE_LOG(LogEnhancedBox, Warning, L"%s", *(*dimension).ToString());
+			//}
 			switch (currentAxis)
 			{
 			case EBoxAxis::WIDTH:
 				pivotPoint = FVector
 				(
-					itemInBin->origin.X + (*dimension).X,
-					itemInBin->origin.Y,
-					itemInBin->origin.Z
+					bin->items[j]->origin.X + (*dimension).X + MIN_OFFSET,
+					bin->items[j]->origin.Y,
+					bin->items[j]->origin.Z
 				);
 				break;
 			case EBoxAxis::HEIGHT:
 				pivotPoint = FVector
 				(
-					itemInBin->origin.X,
-					itemInBin->origin.Y + (*dimension).Y,
-					itemInBin->origin.Z
+					bin->items[j]->origin.X,
+					bin->items[j]->origin.Y + (*dimension).Y + MIN_OFFSET,
+					bin->items[j]->origin.Z
 				);
 				break;
 			case EBoxAxis::DEPTH:
 				pivotPoint = FVector
 				(
-					itemInBin->origin.X,
-					itemInBin->origin.Y,
-					itemInBin->origin.Z + (*dimension).Z
+					bin->items[j]->origin.X,
+					bin->items[j]->origin.Y,
+					bin->items[j]->origin.Z + (*dimension).Z + MIN_OFFSET
 				);
 				break;
 			case EBoxAxis::ALL:
@@ -313,14 +315,16 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 			}
 			//UE_LOG(LogEnhancedBox, Warning, TEXT("%s"), *pivotPoint.ToString());
 
-			item->origin = pivotPoint;
+			//item->origin = pivotPoint;
 
 			if (bin->PlaceItem(item, pivotPoint))
 			{
 				fit = true;
+				item->origin = pivotPoint;
 				//item->origin = pivotPoint;
 				break;
 			}
+			delete(dimension);
 		}
 		if (fit)
 		{

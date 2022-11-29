@@ -24,7 +24,7 @@ public:
 	FName settingsRow;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int maxItems = 99;
+	int maxItems = 250;
 
 	UFUNCTION(BlueprintCallable, CallInEditor, meta = (CallableWithoutWorldContext))
 	void StartPacking();
