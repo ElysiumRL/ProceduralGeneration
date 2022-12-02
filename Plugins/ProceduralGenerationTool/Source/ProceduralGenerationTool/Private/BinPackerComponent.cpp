@@ -14,7 +14,7 @@ void UBinPackerComponent::StartPacking()
 	
 	//Create bin
 	URectangleBin* bin = new URectangleBin();
-	bin->extent = FVector(1000, 1000, 1000);
+	bin->extent = FVector(100, 100, 1000);
 
 	packerInstance.bins.Add(bin);
 	
@@ -29,10 +29,7 @@ void UBinPackerComponent::StartPacking()
 		GenerateItem(rows[itemToSpawnIndex]);
 	}
 	
-	//TODO: Sort items (by size)
-
-	//
-
+	packerInstance.items.Sort();
 
 	//Pack items
 	for (int i = 0; i < packerInstance.items.Num(); i++)
@@ -47,11 +44,13 @@ void UBinPackerComponent::StartPacking()
 
 			//TODO: fix it
 			FVector originFixed = FVector(item->origin.X, item->origin.Z, item->origin.Y);
-			FRotator rotation = FRotator();
+			FRotator rotation = item->GetRotationFromAxis();
 
 
-			GetWorld()->SpawnActor<AActor>(item->linkedActor, originFixed, rotation, spawnParams);
-			UE_LOG(LogPackerComponent, Display, L"Actor Spawned");
+			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(item->linkedActor, originFixed, rotation, spawnParams);
+			UStaticMeshComponent* mesh = Cast<UStaticMeshComponent>(actorCreated->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			mesh->SetStaticMesh(item->linkedMesh);
+
 			packerInstance.bins[0]->items.Add(item);
 			//packerInstance.items.Remove(item);
 		}
@@ -59,7 +58,6 @@ void UBinPackerComponent::StartPacking()
 		{
 			//packerInstance.unfitItems.Add(item);
 			//packerInstance.items.Remove(item);
-			UE_LOG(LogPackerComponent, Warning, L"Actor not spawned");
 		}
 	}
 }
@@ -70,6 +68,6 @@ void UBinPackerComponent::GenerateItem(FPackerItemSettings* row)
 	newItem->linkedActor = row->actor;	
 	newItem->MakeFromStaticMesh(row->mesh, newItem->origin);
 	newItem->box = FBox::BuildAABB(newItem->origin, newItem->extent / 2.0f);
-
+	newItem->linkedMesh = row->mesh;
 	packerInstance.items.Add(newItem);
 }

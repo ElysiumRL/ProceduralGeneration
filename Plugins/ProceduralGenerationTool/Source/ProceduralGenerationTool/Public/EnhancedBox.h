@@ -71,33 +71,24 @@ public:
 
 		FVector RotateBox(const FVector& boxOrigin, FVector fromLocation, float angle);
 		
-		FORCEINLINE FString ToString() { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }
-
-		FORCEINLINE float Area2D() { return extent.X * extent.Y; }
-
-		FORCEINLINE float Volume() { return extent.X * extent.Y * extent.Z; }
-
-		FORCEINLINE float Perimeter2D() { return 2 * extent.X + 2 * extent.Y; }
-
-		FORCEINLINE const float Width() const { return extent.X; }
-
-		FORCEINLINE const float Height() const { return extent.Y; }
-		
-		FORCEINLINE const float Length() const { return extent.Z; }
-
-		FORCEINLINE float WidthRatio() { return Height() == 0.0f ? 0.0f : Width() / Height(); }
-
-		FORCEINLINE float HeightRatio() { return Width() == 0.0f ? 0.0f : Height() / Width(); }
-		
-		FORCEINLINE const FVector Center() { return box.GetCenter(); }
-		FORCEINLINE const FVector TopLeft() { return box.Min; }
-		FORCEINLINE const FVector TopRight() { return FVector(box.Min.X, box.Max.Y, box.Min.Z); }
-		FORCEINLINE const FVector XPosPoint() { return FVector(Center().X + extent.X, Center().Y, Center().Z); }
-		FORCEINLINE const FVector XNegPoint() { return FVector(Center().X - extent.X, Center().Y, Center().Z); }
-		FORCEINLINE const FVector YPosPoint() { return FVector(Center().X, Center().Y + extent.Y, Center().Z); }
-		FORCEINLINE const FVector YNegPoint() { return FVector(Center().X, Center().Y - extent.Y, Center().Z); }
-		FORCEINLINE const FVector ZPosPoint() { return FVector(Center().X, Center().Y, Center().Z + extent.Z); }
-		FORCEINLINE const FVector ZNegPoint() { return FVector(Center().X, Center().Y, Center().Z - extent.Z); }
+		FORCEINLINE const FString ToString()  const { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }
+		FORCEINLINE const float Area2D()	  const { return extent.X * extent.Y; }
+		FORCEINLINE const float Volume()	  const { return extent.X * extent.Y * extent.Z; }
+		FORCEINLINE const float Perimeter2D() const { return 2 * extent.X + 2 * extent.Y; }
+		FORCEINLINE const float Width()		  const	{ return extent.X; }
+		FORCEINLINE const float Height()      const	{ return extent.Y; }		
+		FORCEINLINE const float Length()      const	{ return extent.Z; }
+		FORCEINLINE const float WidthRatio()  const	{ return Height() == 0.0f ? 0.0f : Width() / Height(); }
+		FORCEINLINE const float HeightRatio() const { return Width() == 0.0f ? 0.0f : Height() / Width(); }	
+		FORCEINLINE const FVector Center()    const { return box.GetCenter(); }
+		FORCEINLINE const FVector TopLeft()   const { return box.Min; }
+		FORCEINLINE const FVector TopRight()  const { return FVector(box.Min.X, box.Max.Y, box.Min.Z); }
+		FORCEINLINE const FVector XPosPoint() const { return FVector(Center().X + extent.X, Center().Y, Center().Z); }
+		FORCEINLINE const FVector XNegPoint() const { return FVector(Center().X - extent.X, Center().Y, Center().Z); }
+		FORCEINLINE const FVector YPosPoint() const { return FVector(Center().X, Center().Y + extent.Y, Center().Z); }
+		FORCEINLINE const FVector YNegPoint() const { return FVector(Center().X, Center().Y - extent.Y, Center().Z); }
+		FORCEINLINE const FVector ZPosPoint() const { return FVector(Center().X, Center().Y, Center().Z + extent.Z); }
+		FORCEINLINE const FVector ZNegPoint() const { return FVector(Center().X, Center().Y, Center().Z - extent.Z); }
 
 		FVector GetDimensionByRotationAxis(const EBoxRotationType& _rotation)
 		{
@@ -121,6 +112,34 @@ public:
 			}
 		}
 
+		FRotator GetRotationFromAxis(const EBoxRotationType& _rotation)
+		{
+			switch (_rotation)
+			{
+			case EBoxRotationType::LWH:
+				return FRotator(0, 0, 0);
+			case EBoxRotationType::HLW:
+				return FRotator(0, 90, 0);
+			case EBoxRotationType::HWL:
+				return FRotator(90, 0, 0);
+			case EBoxRotationType::WHL:
+				return FRotator(90, 90, 0);
+			case EBoxRotationType::WLH:
+				return FRotator(90, 0, 90);
+			case EBoxRotationType::LHW:
+				return FRotator(0, 90, 90);
+			default:
+				UE_LOG(LogEnhancedBox, Error, TEXT("Invalid Rotation Type"));
+				return FRotator(0, 0, 0);
+			}
+
+		}
+
+		FRotator GetRotationFromAxis()
+		{
+			return GetRotationFromAxis(rotationType);
+		}
+
 		//Returns a Vector containing the Length - Width - Height (order moving depending on rotation axis)
 		FVector GetDimensionByRotationAxis() 
 		{
@@ -129,8 +148,6 @@ public:
 
 		//Makes a box from the static mesh approx size
 		FORCEINLINE static UEnhancedBox MakeFromStaticMesh(UStaticMesh* mesh, FVector origin = FVector(0, 0, 0), float rotation = 0.0f);
-
-
 
 };
 
@@ -143,9 +160,15 @@ public:
 
 	TSubclassOf<AActor> linkedActor;
 	
+	UStaticMesh* linkedMesh;
+
 	//Makes a box from the static mesh approx size
 	FORCEINLINE void MakeFromStaticMesh(UStaticMesh* mesh, FVector _origin = FVector(0, 0, 0), float _rotation = 0.0f);
 
+	friend bool operator<(const URectangleItem& l, const URectangleItem& r)
+	{
+		return l.extent.SizeSquared() > r.extent.SizeSquared();
+	}
 };
 
 
