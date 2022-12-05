@@ -157,16 +157,16 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 	//FVector validItemPosition = FVector(0, 0, 0);
 	
 	boxToPlace->origin = initialPosition;
-	boxToPlace->extent = boxToPlace->box.GetExtent() * 2;
+	boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
 
 	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
 	{
 		boxToPlace->rotationType = (EBoxRotationType)i;
 		FVector dimension = boxToPlace->GetDimensionByRotationAxis((EBoxRotationType)i);
 
-		if (Width()  < initialPosition.X + dimension.X ||
-			Height() < initialPosition.Y + dimension.Y ||
-			Length() < initialPosition.Z + dimension.Z)
+		if (Width() < initialPosition.X + dimension.X ||
+			Height() < initialPosition.Z + dimension.Z ||
+			Length() < initialPosition.Y + dimension.Y)
 		{
 
 			continue;
@@ -174,7 +174,7 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 
 		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension / 2.0f);
 		boxToPlace->origin = initialPosition;
-		boxToPlace->extent = boxToPlace->box.GetExtent() * 2;
+		boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
 
 		fit = true;
 		for (int j = 0; j < items.Num(); j++)
@@ -296,16 +296,16 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 				pivotPoint = FVector
 				(
 					bin->items[j]->origin.X,
-					bin->items[j]->origin.Y + (*dimension).Y + MIN_OFFSET,
-					bin->items[j]->origin.Z
+					bin->items[j]->origin.Y,
+					bin->items[j]->origin.Z + (*dimension).Z + MIN_OFFSET
 				);
 				break;
 			case EBoxAxis::DEPTH:
 				pivotPoint = FVector
 				(
 					bin->items[j]->origin.X,
-					bin->items[j]->origin.Y,
-					bin->items[j]->origin.Z + (*dimension).Z + MIN_OFFSET
+					bin->items[j]->origin.Y + (*dimension).Y + MIN_OFFSET,
+					bin->items[j]->origin.Z 
 				);
 				break;
 			case EBoxAxis::ALL:
@@ -337,7 +337,7 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 FORCEINLINE void URectangleItem::MakeFromStaticMesh(UStaticMesh* mesh, FVector _origin /*= FVector(0, 0, 0)*/, float _rotation /*= 0.0f*/)
 {
 	origin = _origin;
-	extent = mesh->GetBounds().GetBox().GetSize();
+	extent = mesh->GetBounds().GetBox().GetSize() + 0.05f;
 	UE_LOG(LogEnhancedBox, Display, L"%s", *extent.ToString());
 
 }

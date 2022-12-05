@@ -41,15 +41,24 @@ void UBinPackerComponent::StartPacking()
 			FActorSpawnParameters spawnParams = FActorSpawnParameters();
 			spawnParams.Owner = this->GetOwner();
 			spawnParams.Instigator = this->GetOwner()->GetInstigator();
+			spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 			//TODO: fix it
-			FVector originFixed = FVector(item->origin.X, item->origin.Z, item->origin.Y);
+			FVector originFixed = FVector(item->origin.X, item->origin.Y, item->origin.Z);
 			FRotator rotation = item->GetRotationFromAxis();
 
-
-			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(item->linkedActor, originFixed, rotation, spawnParams);
+			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(item->linkedActor, originFixed, FRotator(0, 0, 0), spawnParams);
+			
 			UStaticMeshComponent* mesh = Cast<UStaticMeshComponent>(actorCreated->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			mesh->SetStaticMesh(item->linkedMesh);
+
+			//if (UKismetMathLibrary::Abs(mesh->GetRelativeRotation().Yaw) != 0 || UKismetMathLibrary::Abs(mesh->GetRelativeRotation().Yaw) != 90)
+			//{
+			//	UE_LOG(LogPackerComponent, Warning, TEXT("%s"), *mesh->GetRelativeRotation().ToString());
+			//}
+
+			mesh->SetWorldRotation(rotation);
+
 
 			packerInstance.bins[0]->items.Add(item);
 			//packerInstance.items.Remove(item);

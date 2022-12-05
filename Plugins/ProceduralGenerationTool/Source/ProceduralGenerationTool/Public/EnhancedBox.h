@@ -76,8 +76,8 @@ public:
 		FORCEINLINE const float Volume()	  const { return extent.X * extent.Y * extent.Z; }
 		FORCEINLINE const float Perimeter2D() const { return 2 * extent.X + 2 * extent.Y; }
 		FORCEINLINE const float Width()		  const	{ return extent.X; }
-		FORCEINLINE const float Height()      const	{ return extent.Y; }		
-		FORCEINLINE const float Length()      const	{ return extent.Z; }
+		FORCEINLINE const float Height()      const	{ return extent.Z; }		
+		FORCEINLINE const float Length()      const	{ return extent.Y; }
 		FORCEINLINE const float WidthRatio()  const	{ return Height() == 0.0f ? 0.0f : Width() / Height(); }
 		FORCEINLINE const float HeightRatio() const { return Width() == 0.0f ? 0.0f : Height() / Width(); }	
 		FORCEINLINE const FVector Center()    const { return box.GetCenter(); }
@@ -119,15 +119,15 @@ public:
 			case EBoxRotationType::LWH:
 				return FRotator(0, 0, 0);
 			case EBoxRotationType::HLW:
-				return FRotator(0, 90, 0);
+				return FRotator(90, 90, 90);
 			case EBoxRotationType::HWL:
-				return FRotator(90, 0, 0);
-			case EBoxRotationType::WHL:
 				return FRotator(90, 90, 0);
+			case EBoxRotationType::WHL:
+				return FRotator(0, 0, 0);
 			case EBoxRotationType::WLH:
-				return FRotator(90, 0, 90);
+				return FRotator(0, 0, 0);
 			case EBoxRotationType::LHW:
-				return FRotator(0, 90, 90);
+				return FRotator(0, 0, 0);
 			default:
 				UE_LOG(LogEnhancedBox, Error, TEXT("Invalid Rotation Type"));
 				return FRotator(0, 0, 0);
