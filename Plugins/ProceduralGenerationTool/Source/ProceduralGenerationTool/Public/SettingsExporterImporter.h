@@ -54,7 +54,7 @@ struct FPSRSettingsTable : public FTableRowBase
 };
 
 
-
+//Used to register all the tags in the settings
 USTRUCT(Blueprintable, BlueprintType)
 struct FTag
 {
@@ -67,6 +67,19 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Tag")
 	FString description;
+
+};
+
+//Used to select multiple tags from the FTag table
+USTRUCT(Blueprintable, BlueprintType)
+struct FTagSelector
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+	FName tag;
 
 };
 
