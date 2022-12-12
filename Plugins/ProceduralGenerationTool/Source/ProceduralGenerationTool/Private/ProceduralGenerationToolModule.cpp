@@ -2,6 +2,9 @@
 
 #include "ProceduralGenerationToolModule.h"
 #include "ProceduralGenerationToolEditorModeCommands.h"
+#include <PropertyEditorModule.h>
+#include "TagSelectorDetails.h"
+#include "SettingsExporterImporter.h"
 
 #define LOCTEXT_NAMESPACE "ProceduralGenerationToolModule"
 
@@ -11,15 +14,27 @@ void FProceduralGenerationToolModule::StartupModule()
 	UE_LOG(LogTemp, Warning, TEXT("Procedural Tool Loaded"));
 	
 	FProceduralGenerationToolEditorModeCommands::Register();
+
+	FPropertyEditorModule& propertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	propertyModule.RegisterCustomPropertyTypeLayout(FTagSelector::StaticStruct()->GetFName(), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FTagSelectorDetails::MakeInstance));
+	
+	propertyModule.NotifyCustomizationModuleChanged();
 }
 
 void FProceduralGenerationToolModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
 	UE_LOG(LogTemp, Warning, TEXT("Procedural Tool Unloaded"));
 
 	FProceduralGenerationToolEditorModeCommands::Unregister();
+
+	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
+	{
+		FPropertyEditorModule& PropertyModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FTagSelector::StaticStruct()->GetFName());
+		PropertyModule.NotifyCustomizationModuleChanged();
+	}
+
+
 }
 
 #undef LOCTEXT_NAMESPACE
