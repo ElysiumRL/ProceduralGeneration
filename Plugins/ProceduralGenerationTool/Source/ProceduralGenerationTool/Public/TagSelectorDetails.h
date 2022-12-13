@@ -14,7 +14,9 @@ public:
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance()
 	{
 		return MakeShareable(new FTagSelectorDetails());
-	}	
+	}
+
+	FText ChosenTypeText;
 
 	void CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
@@ -29,10 +31,14 @@ public:
 	TArray<TSharedPtr<FString>> Items;
 
 	/* The actual UI list */
-	TSharedPtr< SListView< TSharedPtr<FString> > > ListViewWidget;
+	TSharedPtr<SListView<TSharedPtr<FString>>> ListViewWidget;
 
 	void OnClick(TSharedPtr<FString> argument);
 	
 	void PopulateItems(UDataTable* table);
+	
+	TSharedPtr<IPropertyHandle> tagHandle;
+
+	void OnTypeChanged(TSharedPtr<IPropertyHandle> TypePropertyHandle);
 
 };

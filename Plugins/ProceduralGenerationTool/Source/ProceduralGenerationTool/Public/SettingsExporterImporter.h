@@ -80,7 +80,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Tag")
 	FName tag;
-
 };
 
 
