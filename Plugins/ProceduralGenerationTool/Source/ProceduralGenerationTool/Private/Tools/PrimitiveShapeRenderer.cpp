@@ -477,6 +477,14 @@ void GenerationUtilities::Subdivide(
 		
 		GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], 
 			iterations, subdivisionType, deleteSubdividedBounds);
+		//if (UKismetMathLibrary::RandomFloatFromStream(GenerationUtilities::randomSeedRNG) >= 0.0f)
+		//{
+		//	GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType, deleteSubdividedBounds);
+		//}
+		//else
+		//{
+		//	GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision(), deleteSubdividedBounds);
+		//}
 	}
 }
 

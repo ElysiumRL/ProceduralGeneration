@@ -68,6 +68,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Tag")
 	FString description;
 
+	UPROPERTY(EditAnywhere, Category = "Tag")
+	TArray<TSubclassOf<AActor>> actorsInTag;
+
 };
 
 //Used to select multiple tags from the FTag table
@@ -87,7 +90,6 @@ USTRUCT(BlueprintType, Blueprintable)
 struct FTableTags : public FTableRowBase
 {
 	GENERATED_BODY()
-
 
 public:
 

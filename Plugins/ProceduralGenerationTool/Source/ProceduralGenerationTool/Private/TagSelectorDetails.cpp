@@ -53,7 +53,7 @@ void FTagSelectorDetails::CustomizeChildren(TSharedRef<IPropertyHandle> Property
 				+ SScrollBox::Slot()
 				[
 					SNew(SButton)
-						.Text(FText::FromString("Add From Tag List..."))
+						.Text(FText::FromString("Select From Tag List..."))
 						.OnClicked(this, &FTagSelectorDetails::ButtonPressed)
 					
 				]

@@ -9,7 +9,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogPackerComponent, Log, All)
 
-UCLASS(Blueprintable, BlueprintType, meta = (BlueprintSpawnableComponent))
+UCLASS(ClassGroup = (ProceduralGeneration),Blueprintable, BlueprintType, meta = (BlueprintSpawnableComponent))
 class PROCEDURALGENERATIONTOOL_API UBinPackerComponent : public UBoxComponent
 {
 	GENERATED_BODY()
