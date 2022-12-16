@@ -436,23 +436,11 @@ void UPrimitiveShapeRendererProperties::SetRandomSeed()
 
 #pragma endregion Start Generation
 
-GenerationUtilities::GenerationUtilities()
-{
-
-}
-
-GenerationUtilities::~GenerationUtilities()
-{
-
-}
-
 FRandomStream GenerationUtilities::randomSeedRNG;
 
 TArray<UEnhancedBox*> GenerationUtilities::results = TArray<UEnhancedBox*>();
 
-void GenerationUtilities::Subdivide(
-	UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide,
-	int iterations, ESubdivisionType subdivisionType, bool deleteSubdividedBounds)
+void GenerationUtilities::Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide, int iterations, ESubdivisionType subdivisionType, bool deleteSubdividedBounds)
 {
 	iterations--;
 	//Exit Condition
@@ -466,25 +454,13 @@ void GenerationUtilities::Subdivide(
 	int minSubdivisionWidth = 0.3f * boxToSubdivide->Width();
 	int maxSubdivisionWidth = 0.7f * boxToSubdivide->Width();
 
-	TArray<UEnhancedBox*> subdivisions = GenerationUtilities::Split(*bounds, *boxToSubdivide,
-		UKismetMathLibrary::RandomFloatInRangeFromStream(minSubdivisionWidth, maxSubdivisionWidth,
-			GenerationUtilities::randomSeedRNG) / bounds->Width(), subdivisionType);
+	TArray<UEnhancedBox*> subdivisions = GenerationUtilities::Split(*bounds, *boxToSubdivide, UKismetMathLibrary::RandomFloatInRangeFromStream(minSubdivisionWidth, maxSubdivisionWidth, GenerationUtilities::randomSeedRNG) / bounds->Width(), subdivisionType);
+	
 	for (int i = 0; i < subdivisions.Num(); i++)
 	{
-		subdivisionType = subdivisions[i]->HeightRatio() >= 1.125f ? 
-			ESubdivisionType::Vertical : 
-			ESubdivisionType::Horizontal;
+		subdivisionType = subdivisions[i]->HeightRatio() >= 1.125f ? ESubdivisionType::Vertical : ESubdivisionType::Horizontal;
 		
-		GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], 
-			iterations, subdivisionType, deleteSubdividedBounds);
-		//if (UKismetMathLibrary::RandomFloatFromStream(GenerationUtilities::randomSeedRNG) >= 0.0f)
-		//{
-		//	GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType, deleteSubdividedBounds);
-		//}
-		//else
-		//{
-		//	GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, GenerationUtilities::RandomSubdivision(), deleteSubdividedBounds);
-		//}
+		GenerationUtilities::Subdivide(subdivisions[i], subdivisions[i], iterations, subdivisionType, deleteSubdividedBounds);
 	}
 }
 
@@ -505,33 +481,28 @@ TArray<UEnhancedBox*> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedB
 			boxToSubdivide.box.GetCenter().Y,
 			bounds.box.GetCenter().Z) + offset;
 
-		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Origin : %s"), *box1Center.ToString());
-
-
 		FVector box1Extends = FVector(
 			boxToSubdivide.extent.X * splitLocationFromAxis,
 			boxToSubdivide.extent.Y,
 			boxToSubdivide.extent.Z);
 		
-		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
-
 		UEnhancedBox* box1 = new UEnhancedBox(box1Center, box1Extends);
+
+		//////////////////////////////////////////////////////////////////////////
 
 		FVector box2Center = FVector(
 			boxToSubdivide.TopLeft().X + boxToSubdivide.Width() + (boxToSubdivide.Width() * splitLocationFromAxis),
 			boxToSubdivide.box.GetCenter().Y,
 			bounds.box.GetCenter().Z) + offset;
 		
-		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Origin : %s"), *box2Center.ToString());
-
 		FVector box2Extends = FVector(
 			boxToSubdivide.extent.X * (1.0f - splitLocationFromAxis),
 			boxToSubdivide.extent.Y,
 			boxToSubdivide.extent.Z);
 		
-		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
-
 		UEnhancedBox* box2 = new UEnhancedBox(box2Center, box2Extends);
+		
+		
 		box1->color = FColor::MakeRandomColor();
 		box2->color = FColor::MakeRandomColor();
 		
@@ -543,35 +514,35 @@ TArray<UEnhancedBox*> GenerationUtilities::Split(UEnhancedBox bounds, UEnhancedB
 	{
 		FVector box1Center = FVector(
 			boxToSubdivide.box.GetCenter().X,
-			boxToSubdivide.TopRight().Y - splitLocationFromAxis * (boxToSubdivide.Height()),
+			boxToSubdivide.TopRight().Y - splitLocationFromAxis * (boxToSubdivide.Length()),
 			bounds.box.GetCenter().Z) + offset;
 		
-		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Origin : %s"), *box1Center.ToString());
 
 		FVector box1Extends = FVector(
 			boxToSubdivide.extent.X,
 			boxToSubdivide.extent.Y * splitLocationFromAxis,
 			boxToSubdivide.extent.Z);
 		
-		UE_LOG(LogShapeRenderer, Error, TEXT("Box 1 Extends : %s"), *box1Extends.ToString());
 
 		UEnhancedBox* box1 = new UEnhancedBox(box1Center, box1Extends);
 
+		//////////////////////////////////////////////////////////////////////////
+
+
 		FVector box2Center = FVector(
 			boxToSubdivide.box.GetCenter().X,
-			boxToSubdivide.TopLeft().Y + boxToSubdivide.Height() - (boxToSubdivide.Height() * splitLocationFromAxis),
+			boxToSubdivide.TopLeft().Y + boxToSubdivide.Length() - (boxToSubdivide.Length() * splitLocationFromAxis),
 			bounds.box.GetCenter().Z) + offset;
 		
-		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Origin : %s"), *box2Center.ToString());
 
 		FVector box2Extends = FVector(
 			boxToSubdivide.extent.X,
 			boxToSubdivide.extent.Y * (1.0f - splitLocationFromAxis),
 			boxToSubdivide.extent.Z);
 
-		UE_LOG(LogShapeRenderer, Error, TEXT("Box 2 Extends : %s"), *box2Extends.ToString());
-
 		UEnhancedBox* box2 = new UEnhancedBox(box2Center, box2Extends);
+
+
 
 		box1->color = FColor::MakeRandomColor();		
 		box2->color = FColor::MakeRandomColor();

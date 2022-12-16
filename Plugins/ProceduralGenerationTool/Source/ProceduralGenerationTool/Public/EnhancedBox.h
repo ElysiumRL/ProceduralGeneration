@@ -78,8 +78,8 @@ public:
 		FORCEINLINE const float Width()		  const	{ return extent.X; }
 		FORCEINLINE const float Height()      const	{ return extent.Z; }		
 		FORCEINLINE const float Length()      const	{ return extent.Y; }
-		FORCEINLINE const float WidthRatio()  const	{ return Height() == 0.0f ? 0.0f : Width() / Height(); }
-		FORCEINLINE const float HeightRatio() const { return Width() == 0.0f ? 0.0f : Height() / Width(); }	
+		FORCEINLINE const float WidthRatio()  const	{ return Length() == 0.0f ? 0.0f : Width() / Length(); }
+		FORCEINLINE const float HeightRatio() const { return Width() == 0.0f ? 0.0f : Length() / Width(); }
 		FORCEINLINE const FVector Center()    const { return box.GetCenter(); }
 		FORCEINLINE const FVector TopLeft()   const { return box.Min; }
 		FORCEINLINE const FVector TopRight()  const { return FVector(box.Min.X, box.Max.Y, box.Min.Z); }

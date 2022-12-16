@@ -104,18 +104,18 @@ void ADynamicMeshWallBase::GenerateBaseWall(FVector size)
 	UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendBox(mesh, primitiveOptions, transform, doubleWallSize.X, doubleWallSize.Y, doubleWallSize.Z);
 }
 
-UDynamicMesh* ADynamicMeshWallBase::GenerateBox(FVector size, FVector location)
+UDynamicMesh* ADynamicMeshWallBase::GenerateBox(FVector size, FVector location, FQuat rotator)
 {
 	auto mesh = DynamicMeshComponent->GetDynamicMesh();
 	UDynamicMesh* newMesh = AllocateComputeMesh();
 
 	FGeometryScriptPrimitiveOptions primitiveOptions;
 	FTransform transform = FTransform();
-	FQuat rotation = FQuat::MakeFromEuler(FVector(90, 0, 0));
-	transform.SetRotation(rotation);
-	newMesh = UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendRectangleXY(newMesh, primitiveOptions, transform, size.X, size.Z);
+	transform.SetLocation(location);
+	transform.SetRotation(rotator);
+	mesh = UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendBox(mesh, primitiveOptions, transform, size.X, size.Y, size.Z);
 
-	return newMesh;
+	return mesh;
 }
 
 UDynamicMesh* ADynamicMeshWallBase::GenerateBoxHole(FVector size, FVector location)
@@ -181,4 +181,28 @@ void ADynamicMeshWallBase::AlignUVScale(UDynamicMesh* target, FVector2D newScale
 void ADynamicMeshWallBase::SetMaterial(UDynamicMeshComponent* mesh, UMaterialInterface* material)
 {
 	mesh->SetMaterial(0, material);
+}
+
+void ADynamicMeshWallBase::RunCustomGeneration()
+{
+	for (int i = 0; i < customMeshGeneration.Num(); i++)
+	{
+		//The implementation could be much much more efficient (especially with delegates on TSet but a switch/case is simpler
+		FMeshGenerationContext context = customMeshGeneration[i];
+		switch (context.type)
+		{
+		case EMeshGenerationType::Box:
+			dynamicMesh = GenerateBox(context.transform.GetScale3D(), context.transform.GetLocation());
+			break;
+		case EMeshGenerationType::BoxHole:
+			dynamicMesh = GenerateBoxHole(context.transform.GetScale3D(), context.transform.GetLocation());
+			break;
+		case EMeshGenerationType::RoundedBoxHole:
+			dynamicMesh = GenerateRoundedBoxHole(context.transform.GetScale3D(), context.transform.GetLocation(), context.precision, context.cornerRadius);
+			break;
+		default:
+			UE_LOG(LogDynamicMesh, Warning, L"ADynamicMeshWallBase::RunCustomGeneration : Invalid Mesh Generation Type found");
+			break;
+		}
+	}
 }

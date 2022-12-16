@@ -219,8 +219,6 @@ enum class ESubdivisionType : uint8
 class PROCEDURALGENERATIONTOOL_API GenerationUtilities
 {
 public:
-	GenerationUtilities();
-	~GenerationUtilities();
 
 	static FRandomStream randomSeedRNG;
 

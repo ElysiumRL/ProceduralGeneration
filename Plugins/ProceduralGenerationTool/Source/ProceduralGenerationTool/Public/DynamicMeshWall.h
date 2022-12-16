@@ -7,9 +7,9 @@
 #include "DynamicMeshWall.generated.h"
 
 /**
- * 
+ * Base class for building walls for the Procedural Generation Tool
  */
-UCLASS()
+UCLASS(HideCategories = (Replication,Input,Events))
 class PROCEDURALGENERATIONTOOL_API ADynamicMeshWall : public ADynamicMeshWallBase
 {
 	GENERATED_BODY()
