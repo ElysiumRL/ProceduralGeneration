@@ -337,7 +337,11 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 FORCEINLINE void URectangleItem::MakeFromStaticMesh(UStaticMesh* mesh, FVector _origin /*= FVector(0, 0, 0)*/, float _rotation /*= 0.0f*/)
 {
 	origin = _origin;
-	extent = mesh->GetBounds().GetBox().GetSize() + 0.05f;
-	UE_LOG(LogEnhancedBox, Display, L"%s", *extent.ToString());
+	extent = FVector(
+		mesh->GetBounds().BoxExtent.X * 2.0f,
+		mesh->GetBounds().BoxExtent.Y * 2.0f,
+		mesh->GetBounds().BoxExtent.Z * 2.0f);
+
+	//UE_LOG(LogEnhancedBox, Display, L"%s", *extent.ToString());
 
 }

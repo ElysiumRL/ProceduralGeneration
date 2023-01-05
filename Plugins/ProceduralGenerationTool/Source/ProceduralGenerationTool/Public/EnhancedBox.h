@@ -110,29 +110,79 @@ public:
 				UE_LOG(LogEnhancedBox, Error, TEXT("Invalid Rotation Type"));
 				return FVector(0, 0, 0);
 			}
+
+
+			switch (_rotation)
+			{
+			case EBoxRotationType::LWH:
+				return FVector(Length(), Width(), Height());
+			case EBoxRotationType::HLW:
+				return FVector(Height(), Length(), Width());
+			case EBoxRotationType::HWL:
+				return FVector(Height(), Width(), Length());
+			case EBoxRotationType::WHL:
+				return FVector(Width(), Height(), Length());
+			case EBoxRotationType::WLH:
+				return FVector(Width(), Length(), Height());
+			case EBoxRotationType::LHW:
+				return FVector(Length(), Height(), Width());
+			default:
+				UE_LOG(LogEnhancedBox, Error, TEXT("Invalid Rotation Type"));
+				return FVector(0, 0, 0);
+			}
+		}
+
+		FRotator FromEuler(float roll, float pitch, float yaw)
+		{
+			return FRotator(pitch, yaw, roll);
 		}
 
 		FRotator GetRotationFromAxis(const EBoxRotationType& _rotation)
 		{
-			switch (_rotation)
-			{
-			case EBoxRotationType::LWH:
-				return FRotator(0, 0, 0);
-			case EBoxRotationType::HLW:
-				return FRotator(90, 90, 90);
-			case EBoxRotationType::HWL:
-				return FRotator(90, 90, 0);
-			case EBoxRotationType::WHL:
-				return FRotator(0, 0, 0);
-			case EBoxRotationType::WLH:
-				return FRotator(0, 0, 0);
-			case EBoxRotationType::LHW:
-				return FRotator(0, 0, 0);
-			default:
-				UE_LOG(LogEnhancedBox, Error, TEXT("Invalid Rotation Type"));
-				return FRotator(0, 0, 0);
-			}
+#define X Width()
+#define Y Length()
+#define Z Height()
 
+			if (X >= Y && Y >= Z && X >= Z)
+			{
+				return FRotator(0.0f, 0.0f, 0.0f);
+			}
+			if (X >= Y && X >= Z && Z >= Y)
+			{
+				return FromEuler(90.0f, 0.0f, 0.0f);
+				return FRotator(90.0f, 0.0f, 0.0f);
+			}
+			if (Z >= X && Z >= Y && Y >= X)
+			{
+				return FromEuler(0.0f, 90.0f, 0.0f);
+
+				return FRotator(0.0f, 90.0f, 0.0f);
+			}
+			if (Z >= X && Z >= Y && X >= Y)
+			{
+				return FromEuler(90.0f, 0.0f, 90.0f);
+
+				return FRotator(90.0f, 0.0f, 90.0f);
+			}
+			if (Y >= X && Y >= Z && X >= Z)
+			{
+				return FromEuler(0.0f, 0.0f, 90.0f);
+
+				return FRotator(0.0f, 0.0f, 90.0f);
+			}
+			if (Y >= X && Y >= Z && Z >= X)
+			{
+				return FromEuler(0.0f, 90.0f, 90.0f);
+
+				return FRotator(0.0f, 90.0f, 90.0f);
+			}
+			UE_LOG(LogEnhancedBox, Warning, L"No Rotation found");
+			
+			return FRotator(0.0f, 0.0f, 0.0f);
+
+#undef X
+#undef Y
+#undef Z
 		}
 
 		FRotator GetRotationFromAxis()

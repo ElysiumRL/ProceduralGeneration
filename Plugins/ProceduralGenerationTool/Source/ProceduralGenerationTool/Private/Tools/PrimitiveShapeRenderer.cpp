@@ -615,7 +615,6 @@ void GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* 
 
 void GenerationUtilities::LinkBoxes(bool bAllowMultipleConnections)
 {
-
 }
 
 void GenerationUtilities::ExportResults()

@@ -223,7 +223,7 @@ public:
 	static FRandomStream randomSeedRNG;
 
 	inline static ESubdivisionType RandomSubdivision() { return static_cast<ESubdivisionType>(UKismetMathLibrary::RandomIntegerFromStream(1, GenerationUtilities::randomSeedRNG)); }
-	
+
 	static TArray<UEnhancedBox*> results;
 
 	static void Subdivide(UEnhancedBox* bounds, UEnhancedBox* boxToSubdivide, int iterations, ESubdivisionType subdivisionType,bool deleteSubdividedBounds = false);
@@ -237,5 +237,8 @@ public:
 	static void LinkBoxes(bool bAllowMultipleConnections);
 
 	static void ExportResults();
+
+	static void FillRoom();
+
 
 };
