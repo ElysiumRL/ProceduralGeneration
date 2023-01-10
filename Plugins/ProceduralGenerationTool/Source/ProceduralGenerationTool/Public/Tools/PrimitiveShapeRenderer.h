@@ -9,6 +9,8 @@
 
 #include "EnhancedBox.h"
 #include "DynamicMeshWall.h"
+#include <Engine/SceneCapture2D.h>
+#include <Components/SceneCaptureComponent2D.h>
 
 #include "PrimitiveShapeRenderer.generated.h"
 
@@ -89,6 +91,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Box", meta = (DisplayName = "Force reload"))
 	bool reload;
+
+	UPROPERTY(EditAnywhere, Category = "Misc", meta = (DisplayName = "Scene Capture 2D"))
+	TObjectPtr<ASceneCapture2D> sceneCapture2D;
 
 	void ExportProperties();
 
@@ -232,13 +237,16 @@ public:
 
 	static void MergeBoxes();
 
-	static void CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer);
+	static TArray<AActor*> CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer);
 
 	static void LinkBoxes(bool bAllowMultipleConnections);
 
 	static void ExportResults();
 
 	static void FillRoom();
+
+	static UTexture2D* CreateFromSceneCapture2D(USceneCaptureComponent2D* sceneCapture, UObject* Outer);
+
 
 
 };

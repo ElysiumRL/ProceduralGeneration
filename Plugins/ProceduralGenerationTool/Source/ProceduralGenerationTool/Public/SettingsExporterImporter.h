@@ -51,6 +51,10 @@ struct FPSRSettingsTable : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, Category = "Box|Subdivisions", meta = (DisplayName = "Subdivided Box Thickness", EditCondition = "splitBox"))
 	float subdivisionThickness;
+	
+	UPROPERTY(EditAnywhere, Category = "Misc", meta = (DisplayName = "Scene Capture 2D"))
+	TObjectPtr<ASceneCapture2D> sceneCapture2D;
+
 };
 
 

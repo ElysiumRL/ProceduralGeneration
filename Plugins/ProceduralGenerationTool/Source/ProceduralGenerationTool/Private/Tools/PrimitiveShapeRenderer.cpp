@@ -10,6 +10,8 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "SettingsExporterImporter.h"
+#include <Components/SceneCaptureComponent2D.h>
+#include <Engine/TextureRenderTarget2D.h>
 
 DEFINE_LOG_CATEGORY(LogShapeRenderer);
 
@@ -143,10 +145,16 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 	//	UE_LOG(LogShapeRenderer, Warning, TEXT("%s"), *GenerationUtilities::results[i].ToString());
 	//}
 
+	TArray<AActor*> walls = TArray<AActor*>();
+
 	for (int i = 0; i < GenerationUtilities::results.Num(); i++)
 	{
-		GenerationUtilities::CreateWall(*GenerationUtilities::results[i], this);
+		walls.Append(GenerationUtilities::CreateWall(*GenerationUtilities::results[i], this));
 	}
+
+
+	Properties->sceneCapture2D->GetCaptureComponent2D()->ShowOnlyActors = walls;
+	Properties->sceneCapture2D->GetCaptureComponent2D()->CaptureScene();
 }
 
 void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty* Property)
@@ -322,6 +330,7 @@ void UPrimitiveShapeRendererProperties::ExportProperties()
 	table.subdivisionColor = subdivisionColor;
 	table.subdivisionCount = subdivisionCount;
 	table.subdivisionThickness = subdivisionThickness;
+	table.sceneCapture2D = sceneCapture2D;
 
 	propertiesAsTable->AddRow(TEXT("Settings"), table);
 	propertiesAsTable->MarkPackageDirty();
@@ -352,6 +361,7 @@ bool UPrimitiveShapeRendererProperties::ImportProperties()
 		subdivisionColor = table->subdivisionColor;
 		subdivisionCount = table->subdivisionCount;
 		subdivisionThickness = table->subdivisionThickness;
+		sceneCapture2D = table->sceneCapture2D;
 		renderBox = true;
 
 		if (splitBox)
@@ -560,10 +570,11 @@ void GenerationUtilities::MergeBoxes()
 
 }
 
-void GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer)
+TArray<AActor*> GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer)
 {
 	FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport);
 
+	TArray<AActor*> allWalls = TArray<AActor*>();
 	//ADynamicMeshWall* wall = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, box.Center(), FRotator());
 	//bool DEBUG_RenderAsOneWall = false;
 	//
@@ -611,13 +622,31 @@ void GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* 
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	allWalls.Add(wall);
+	allWalls.Add(wall2);
+	allWalls.Add(wall3);
+	allWalls.Add(wall4);
+
+	return allWalls;
 }
 
 void GenerationUtilities::LinkBoxes(bool bAllowMultipleConnections)
 {
+
 }
 
 void GenerationUtilities::ExportResults()
 {
 
+}
+
+UTexture2D* GenerationUtilities::CreateFromSceneCapture2D(USceneCaptureComponent2D* sceneCapture, UObject* Outer)
+{
+	UTextureRenderTarget2D* target = sceneCapture->TextureTarget;
+	UTexture2D* newTexture = target->ConstructTexture2D(Outer, "TempRenderTexture", EObjectFlags::RF_NoFlags, CTF_DeferCompression);
+	newTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
+	newTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
+	newTexture->SRGB = 0;
+	newTexture->UpdateResource();
+	return newTexture;
 }
