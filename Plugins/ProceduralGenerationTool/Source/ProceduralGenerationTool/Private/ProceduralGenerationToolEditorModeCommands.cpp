@@ -10,7 +10,7 @@ FProceduralGenerationToolEditorModeCommands::FProceduralGenerationToolEditorMode
 	: TCommands<FProceduralGenerationToolEditorModeCommands>("ProceduralGenerationToolEditorMode",
 		NSLOCTEXT("ProceduralGenerationToolEditorMode", "ProceduralGenerationToolEditorModeCommands", "ProceduralGenerationTool Editor Mode"),
 		NAME_None,
-		FEditorStyle::GetStyleSetName())
+		FAppStyle::GetAppStyleSetName())
 {
 }
 

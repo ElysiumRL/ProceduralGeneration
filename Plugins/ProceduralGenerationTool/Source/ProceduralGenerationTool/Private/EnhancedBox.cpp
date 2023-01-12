@@ -172,9 +172,13 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 			continue;
 		}
 
-		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension / 2.0f);
+		//boxToPlace->box = FBox::BuildAABB(initialPosition, dimension / 2.0f);
+		//boxToPlace->origin = initialPosition;
+		//boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
+		
+		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension);
 		boxToPlace->origin = initialPosition;
-		boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
+		boxToPlace->extent = boxToPlace->box.GetExtent();
 
 		fit = true;
 		for (int j = 0; j < items.Num(); j++)

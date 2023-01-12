@@ -12,6 +12,9 @@
 #include "SettingsExporterImporter.h"
 #include <Components/SceneCaptureComponent2D.h>
 #include <Engine/TextureRenderTarget2D.h>
+#include <HighResScreenshot.h>
+#include <AssetRegistry/AssetRegistryModule.h>
+#include <UObject/SavePackage.h>
 
 DEFINE_LOG_CATEGORY(LogShapeRenderer);
 
@@ -154,7 +157,15 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 
 
 	Properties->sceneCapture2D->GetCaptureComponent2D()->ShowOnlyActors = walls;
+
+	//Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureEveryFrame = false;
+	//Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureOnMovement = false;
+
+	Properties->sceneCapture2D->SetActorLocation(Properties->boxTransform + FVector(0, 0, UKismetMathLibrary::GetMaxElement(Properties->boxExtent)));
 	Properties->sceneCapture2D->GetCaptureComponent2D()->CaptureScene();
+	UTexture2D* texture = GenerationUtilities::CreateFromSceneCapture2D(Properties->sceneCapture2D->GetCaptureComponent2D(), this);
+	GenerationUtilities::SaveTexture2D(texture, FString("RenderTargetTest"));
+
 }
 
 void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty* Property)
@@ -640,11 +651,38 @@ void GenerationUtilities::ExportResults()
 
 }
 
+void GenerationUtilities::FillRoom()
+{
+
+}
+
+void GenerationUtilities::SaveTexture2D(UTexture2D* texture, FString filename)
+{
+	FString PackageName = TEXT("/Game/ProceduralTexture/");
+	PackageName += filename;
+	UPackage* Package = CreatePackage(*PackageName);
+	Package->FullyLoad();
+
+	texture->UpdateResource();
+	Package->MarkPackageDirty();
+	FAssetRegistryModule::AssetCreated(texture);
+	
+	FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
+	bool bSaved = UPackage::SavePackage(Package, texture, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *PackageFileName, GError, nullptr, true, true, SAVE_NoError);
+	Package->MarkPackageDirty();
+	//bool bSaved = UPackage::SavePackage(Package, texture, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *PackageFileName, GError, nullptr, true, true, SAVE_NoError);
+
+	if (!bSaved)
+	{
+		UE_LOG(LogShapeRenderer, Warning, TEXT("Texture2D Not saved"));
+	}
+}
+
 UTexture2D* GenerationUtilities::CreateFromSceneCapture2D(USceneCaptureComponent2D* sceneCapture, UObject* Outer)
 {
 	UTextureRenderTarget2D* target = sceneCapture->TextureTarget;
 	UTexture2D* newTexture = target->ConstructTexture2D(Outer, "TempRenderTexture", EObjectFlags::RF_NoFlags, CTF_DeferCompression);
-	newTexture->CompressionSettings = TextureCompressionSettings::TC_Grayscale;
+	newTexture->CompressionSettings = TextureCompressionSettings::TC_Default;
 	newTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
 	newTexture->SRGB = 0;
 	newTexture->UpdateResource();
