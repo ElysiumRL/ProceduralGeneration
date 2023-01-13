@@ -26,9 +26,9 @@ enum class EBoxRotationType : uint8
 UENUM(Blueprintable)
 enum class EBoxAxis : uint8
 {
-	WIDTH,
-	HEIGHT,
-	DEPTH,
+	WIDTH = 0, //X
+	DEPTH = 1, //Y
+	HEIGHT = 2, //Z
 	ALL
 };
 
@@ -42,6 +42,7 @@ public:
 
 		UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox);
 
+		//Used for compatibility
 		FBox box;
 
 		TArray<FVector> vertices;
@@ -70,7 +71,7 @@ public:
 		void DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& _color = FColor::Red, float thickness = 2.f);
 
 		FVector RotateBox(const FVector& boxOrigin, FVector fromLocation, float angle);
-		
+	
 		FORCEINLINE const FString ToString()  const { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }
 		FORCEINLINE const float Area2D()	  const { return extent.X * extent.Y; }
 		FORCEINLINE const float Volume()	  const { return extent.X * extent.Y * extent.Z; }
@@ -90,28 +91,32 @@ public:
 		FORCEINLINE const FVector ZPosPoint() const { return FVector(Center().X, Center().Y, Center().Z + extent.Z); }
 		FORCEINLINE const FVector ZNegPoint() const { return FVector(Center().X, Center().Y, Center().Z - extent.Z); }
 
+		static bool Intersects(const UEnhancedBox& a, const UEnhancedBox& b)
+		{
+			return 
+				PartialIntersect(a, b, EBoxAxis::WIDTH, EBoxAxis::HEIGHT) &&
+				PartialIntersect(a, b, EBoxAxis::HEIGHT, EBoxAxis::DEPTH) &&
+				PartialIntersect(a, b, EBoxAxis::WIDTH, EBoxAxis::DEPTH);
+		}
+
+		static bool PartialIntersect(const UEnhancedBox& a, const UEnhancedBox& b, const EBoxAxis& axisX, const EBoxAxis& axisY)
+		{
+			FVector dimA = a.extent;
+			FVector dimB = b.extent;
+
+			float cx1 = a.origin[(uint8)axisX] + dimA[(uint8)axisX] / 2.0f;
+			float cy1 = a.origin[(uint8)axisY] + dimA[(uint8)axisY] / 2.0f;
+			float cx2 = b.origin[(uint8)axisX] + dimB[(uint8)axisX] / 2.0f;
+			float cy2 = b.origin[(uint8)axisY] + dimB[(uint8)axisY] / 2.0f;
+
+			float intersectionX = FMath::Max(cx1, cx2) - FMath::Min(cx1, cx2);
+			float intersectionY = FMath::Max(cy1, cy2) - FMath::Min(cy1, cy2);
+
+			return intersectionX < (dimA[(uint8)axisX] + dimB[(uint8)axisX]) / 2.0f && intersectionY < (dimA[(uint8)axisY] + dimB[(uint8)axisY]) / 2.0f;
+		}
+
 		FVector GetDimensionByRotationAxis(const EBoxRotationType& _rotation)
 		{
-			switch (_rotation)
-			{
-			case EBoxRotationType::LWH:
-				return FVector(Length(), Width(), Height());
-			case EBoxRotationType::HLW:
-				return FVector(Height(), Length(), Width());
-			case EBoxRotationType::HWL:
-				return FVector(Height(), Width(), Length());
-			case EBoxRotationType::WHL:
-				return FVector(Width(), Height(), Length());
-			case EBoxRotationType::WLH:
-				return FVector(Width(), Length(), Height());
-			case EBoxRotationType::LHW:
-				return FVector(Length(), Height(), Width());
-			default:
-				UE_LOG(LogEnhancedBox, Error, TEXT("Invalid Rotation Type"));
-				return FVector(0, 0, 0);
-			}
-
-
 			switch (_rotation)
 			{
 			case EBoxRotationType::LWH:
@@ -139,55 +144,71 @@ public:
 
 		FRotator GetRotationFromAxis(const EBoxRotationType& _rotation)
 		{
+			switch (_rotation)
+			{
+			case EBoxRotationType::LWH:
+				return FromEuler(0.0f, 0.0f, 0.0f);
+
+			case EBoxRotationType::LHW:
+				return FromEuler(90.0f, 0.0f, 0.0f);
+
+			case EBoxRotationType::WLH:
+				return FromEuler(0.0f, 0.0f, 90.0f);
+			
+			case EBoxRotationType::HWL:
+				return FromEuler(0.0f, 90.0, 0.0);
+
+			case EBoxRotationType::WHL:
+				return FromEuler(0.0f, 90.0f, 0.0f);
+			case EBoxRotationType::HLW:
+				return FromEuler(0.0f, 90.0f, 90.0f);
+
+			case EBoxRotationType::ALL:
+				return FromEuler(0.0f, 0.0f, 0.0f);
+			default:
+				return FromEuler(0.0f, 0.0f, 0.0f);
+
+			}
+		}
+
+
+		FRotator GetRotationAligned()
+		{
 #define X Width()
 #define Y Length()
 #define Z Height()
 
 			if (X >= Y && Y >= Z && X >= Z)
 			{
-				return FRotator(0.0f, 0.0f, 0.0f);
+				return FromEuler(0.0f, 0.0f, 0.0f);
 			}
 			if (X >= Y && X >= Z && Z >= Y)
 			{
 				return FromEuler(90.0f, 0.0f, 0.0f);
-				return FRotator(90.0f, 0.0f, 0.0f);
 			}
 			if (Z >= X && Z >= Y && Y >= X)
 			{
 				return FromEuler(0.0f, 90.0f, 0.0f);
-
-				return FRotator(0.0f, 90.0f, 0.0f);
 			}
 			if (Z >= X && Z >= Y && X >= Y)
 			{
 				return FromEuler(90.0f, 0.0f, 90.0f);
-
-				return FRotator(90.0f, 0.0f, 90.0f);
 			}
 			if (Y >= X && Y >= Z && X >= Z)
 			{
 				return FromEuler(0.0f, 0.0f, 90.0f);
-
-				return FRotator(0.0f, 0.0f, 90.0f);
 			}
 			if (Y >= X && Y >= Z && Z >= X)
 			{
 				return FromEuler(0.0f, 90.0f, 90.0f);
-
-				return FRotator(0.0f, 90.0f, 90.0f);
 			}
 			UE_LOG(LogEnhancedBox, Warning, L"No Rotation found");
 			
-			return FRotator(0.0f, 0.0f, 0.0f);
+			return FromEuler(0.0f, 0.0f, 0.0f);
 
 #undef X
 #undef Y
 #undef Z
-		}
-
-		FRotator GetRotationFromAxis()
-		{
-			return GetRotationFromAxis(rotationType);
 		}
 
 		//Returns a Vector containing the Length - Width - Height (order moving depending on rotation axis)

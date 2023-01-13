@@ -154,31 +154,27 @@ float URectangleBin::GetFillingRatio()
 bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPosition)
 {
 	bool fit = false;
-	//FVector validItemPosition = FVector(0, 0, 0);
-	
+	FVector validPosition = initialPosition;
+
 	boxToPlace->origin = initialPosition;
-	boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
+	//boxToPlace->extent = boxToPlace->box.GetExtent();
 
 	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
 	{
 		boxToPlace->rotationType = (EBoxRotationType)i;
-		FVector dimension = boxToPlace->GetDimensionByRotationAxis((EBoxRotationType)i);
+		FVector dimension = boxToPlace->GetDimensionByRotationAxis((EBoxRotationType)i) / 2;
 
 		if (Width() < initialPosition.X + dimension.X ||
 			Height() < initialPosition.Z + dimension.Z ||
 			Length() < initialPosition.Y + dimension.Y)
 		{
-
 			continue;
 		}
 
-		//boxToPlace->box = FBox::BuildAABB(initialPosition, dimension / 2.0f);
-		//boxToPlace->origin = initialPosition;
-		//boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
-		
 		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension);
 		boxToPlace->origin = initialPosition;
-		boxToPlace->extent = boxToPlace->box.GetExtent();
+		boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
+		
 
 		fit = true;
 		for (int j = 0; j < items.Num(); j++)
@@ -207,55 +203,20 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 			//	return fit;
 			//}
 			return fit;
-
 		}
 
-		//if (!fit)
-		//{
-		//	actorAsBox.origin = validItemPosition;
-		//}
-		//return fit;
+		if (!fit)
+		{
+			boxToPlace->origin = validPosition;
+		}
+		return fit;
 	}
-	//if (!fit)
-	//{
-	//	actorAsBox.origin = validItemPosition;
-	//}
+	if (!fit)
+	{
+		boxToPlace->origin = validPosition;
+	}
 
 	return fit;
-}
-
-TArray<EBoxRotationType> URectangleBin::CanPlaceItemWithRotation(UEnhancedBox& boxToPlace)
-{
-	bool canFit = false;
-	FVector pivot;
-	TArray<EBoxRotationType> fittingRotations = TArray<EBoxRotationType>();
-
-	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
-	{
-		FVector dimensions = this->GetDimensionByRotationAxis((EBoxRotationType)i);
-
-		if (pivot.X + dimensions.X <= Width()
-			&& pivot.Y + dimensions.Y < Height()
-			&& pivot.Z + dimensions.Z < Length())
-		{
-			canFit = true;
-
-			for (int j = 0; j < items.Num(); j++)
-			{
-				if (items[j]->box.Intersect(boxToPlace.box))
-				{
-					canFit = false;
-					boxToPlace.origin = FVector(0, 0, 0);
-					break;
-				}
-			}
-			if (canFit)
-			{
-				fittingRotations.Add((EBoxRotationType)i);
-			}
-		}
-	}
-	return fittingRotations;
 }
 
 #define MIN_OFFSET 0.001f
@@ -269,7 +230,6 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 		if (bin->PlaceItem(item, FVector(0,0,0)))
 		{
 			fit = true;
-			//item->origin = FVector(0, 0, 0);
 		}
 		return fit;
 	}
@@ -282,10 +242,6 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 		{
 			FVector* dimension = new FVector(bin->items[j]->GetDimensionByRotationAxis());
 
-			//if ((*dimension).X > 0.1f)
-			//{
-			//	UE_LOG(LogEnhancedBox, Warning, L"%s", *(*dimension).ToString());
-			//}
 			switch (currentAxis)
 			{
 			case EBoxAxis::WIDTH:
@@ -296,20 +252,20 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 					bin->items[j]->origin.Z
 				);
 				break;
-			case EBoxAxis::HEIGHT:
-				pivotPoint = FVector
-				(
-					bin->items[j]->origin.X,
-					bin->items[j]->origin.Y,
-					bin->items[j]->origin.Z + (*dimension).Z + MIN_OFFSET
-				);
-				break;
 			case EBoxAxis::DEPTH:
 				pivotPoint = FVector
 				(
 					bin->items[j]->origin.X,
 					bin->items[j]->origin.Y + (*dimension).Y + MIN_OFFSET,
 					bin->items[j]->origin.Z 
+				);
+				break;
+			case EBoxAxis::HEIGHT:
+				pivotPoint = FVector
+				(
+					bin->items[j]->origin.X,
+					bin->items[j]->origin.Y,
+					bin->items[j]->origin.Z + (*dimension).Z + MIN_OFFSET
 				);
 				break;
 			case EBoxAxis::ALL:
@@ -325,7 +281,7 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 			{
 				fit = true;
 				item->origin = pivotPoint;
-				//item->origin = pivotPoint;
+				delete(dimension);
 				break;
 			}
 			delete(dimension);
@@ -342,10 +298,10 @@ FORCEINLINE void URectangleItem::MakeFromStaticMesh(UStaticMesh* mesh, FVector _
 {
 	origin = _origin;
 	extent = FVector(
-		mesh->GetBounds().BoxExtent.X * 2.0f,
-		mesh->GetBounds().BoxExtent.Y * 2.0f,
-		mesh->GetBounds().BoxExtent.Z * 2.0f);
+		mesh->GetBounds().BoxExtent.X * 2.0,
+		mesh->GetBounds().BoxExtent.Y * 2.0,
+		mesh->GetBounds().BoxExtent.Z * 2.0);
 
-	//UE_LOG(LogEnhancedBox, Display, L"%s", *extent.ToString());
+	UE_LOG(LogEnhancedBox, Display, L"%s", *extent.ToString());
 
 }

@@ -14,7 +14,7 @@ void UBinPackerComponent::StartPacking()
 	
 	//Create bin
 	URectangleBin* bin = new URectangleBin();
-	bin->extent = FVector(100, 100, 1000);
+	bin->extent = GetUnscaledBoxExtent()*2;
 
 	packerInstance.bins.Add(bin);
 	
@@ -42,11 +42,10 @@ void UBinPackerComponent::StartPacking()
 			spawnParams.Owner = this->GetOwner();
 			spawnParams.Instigator = this->GetOwner()->GetInstigator();
 			spawnParams.bNoFail = false;
-			spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
+			spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-			//TODO: fix it
-			FVector originFixed = FVector(item->origin.X, item->origin.Y, item->origin.Z);
-			FRotator rotation = item->GetRotationFromAxis();
+			FVector originFixed = FVector(item->origin.X, item->origin.Z, item->origin.Y);
+			FRotator rotation = item->GetRotationFromAxis(item->rotationType);
 
 			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(item->linkedActor, originFixed, rotation, spawnParams);
 			if (actorCreated)

@@ -138,7 +138,7 @@ UDynamicMesh* ADynamicMeshWallBase::GenerateBoxHole(FVector size, FVector locati
 	FVector holeLocation = FVector(location.X, location.Y - size.Y / 2.f, location.Z);
 	booleanTransform.SetLocation(holeLocation);
 	FGeometryScriptMeshBooleanOptions booleanOptions;
-	newMesh = UGeometryScriptLibrary_MeshModelingFunctions::ApplyMeshExtrude(newMesh, options);
+	newMesh = UGeometryScriptLibrary_MeshModelingFunctions::ApplyMeshExtrude_Compatibility_5p0(newMesh, options);
 	mesh = UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(DynamicMeshComponent->GetDynamicMesh(), FTransform(), newMesh, booleanTransform, EGeometryScriptBooleanOperation::Subtract, booleanOptions);
 
 	return newMesh;
@@ -166,7 +166,7 @@ UDynamicMesh* ADynamicMeshWallBase::GenerateRoundedBoxHole(FVector size, FVector
 	FVector holeLocation = FVector(location.X, location.Y - size.Y / 2.f, location.Z);
 	booleanTransform.SetLocation(holeLocation);
 	FGeometryScriptMeshBooleanOptions booleanOptions;
-	newMesh = UGeometryScriptLibrary_MeshModelingFunctions::ApplyMeshExtrude(newMesh, options);
+	newMesh = UGeometryScriptLibrary_MeshModelingFunctions::ApplyMeshExtrude_Compatibility_5p0(newMesh, options);
 	mesh = UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(DynamicMeshComponent->GetDynamicMesh(), FTransform(), newMesh, booleanTransform, EGeometryScriptBooleanOperation::Subtract, booleanOptions);
 
 
@@ -175,7 +175,9 @@ UDynamicMesh* ADynamicMeshWallBase::GenerateRoundedBoxHole(FVector size, FVector
 
 void ADynamicMeshWallBase::AlignUVScale(UDynamicMesh* target, FVector2D newScale)
 {
-	target = UGeometryScriptLibrary_MeshUVFunctions::ScaleMeshUVs(target, 0, newScale, FVector2D(1, 1));
+	FGeometryScriptMeshSelection selection;
+
+	target = UGeometryScriptLibrary_MeshUVFunctions::ScaleMeshUVs(target, 0, newScale, FVector2D(1, 1), selection);
 }
 
 void ADynamicMeshWallBase::SetMaterial(UDynamicMeshComponent* mesh, UMaterialInterface* material)
