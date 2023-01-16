@@ -7,12 +7,12 @@
 
 /* ------------ */
 #include "Tools/PrimitiveShapeRenderer.h"
+#include "Tools/TagManager.h"
 /* ------------ */
 
 #include "SettingsExporterImporter.generated.h"
 
 #define PRIMITIVE_RENDERING_SETTINGS TEXT("/ProceduralGenerationTool/Settings/PrimitiveRendererSettings.PrimitiveRendererSettings")
-#define TAGS_SETTINGS TEXT("/ProceduralGenerationTool/Settings/TagsSettings.TagsSettings")
 
 USTRUCT(BlueprintType, Blueprintable)
 struct FPSRSettingsTable : public FTableRowBase
@@ -54,50 +54,5 @@ struct FPSRSettingsTable : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, Category = "Misc", meta = (DisplayName = "Scene Capture 2D"))
 	TObjectPtr<ASceneCapture2D> sceneCapture2D;
-
-};
-
-
-//Used to register all the tags in the settings
-USTRUCT(Blueprintable, BlueprintType)
-struct FTag
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere, Category = "Tag")
-	FName tag;
-
-	UPROPERTY(EditAnywhere, Category = "Tag")
-	FString description;
-
-	UPROPERTY(EditAnywhere, Category = "Tag")
-	TArray<TSubclassOf<AActor>> actorsInTag;
-
-};
-
-//Used to select multiple tags from the FTag table
-USTRUCT(Blueprintable, BlueprintType)
-struct FTagSelector
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere, Category = "Tag")
-	FName tag;
-};
-
-
-USTRUCT(BlueprintType, Blueprintable)
-struct FTableTags : public FTableRowBase
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere, Category = "General")
-	TArray<FTag> tags;
 
 };

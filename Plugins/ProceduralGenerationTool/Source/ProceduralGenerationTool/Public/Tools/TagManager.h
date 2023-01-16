@@ -5,12 +5,56 @@
 #include "CoreMinimal.h"
 #include "InteractiveToolBuilder.h"
 #include "BaseTools/SingleClickTool.h"
-#include "SettingsExporterImporter.h"
 
 #include "TagManager.generated.h"
 
+#define TAGS_SETTINGS TEXT("/ProceduralGenerationTool/Settings/TagsSettings.TagsSettings")
+
 DECLARE_LOG_CATEGORY_EXTERN(LogTagManager, Log, All);
 
+//Used to register all the tags in the settings
+USTRUCT(Blueprintable, BlueprintType)
+struct FTag
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+		FName tag;
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+		FString description;
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+		TArray<TSubclassOf<AActor>> actorsInTag;
+
+};
+
+//Used to select multiple tags from the FTag table
+USTRUCT(Blueprintable, BlueprintType)
+struct FTagSelector
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+		FName tag;
+};
+
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FTableTags : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, Category = "General")
+		TArray<FTag> tags;
+
+};
 
 UCLASS()
 class PROCEDURALGENERATIONTOOL_API UTagManagerToolBuilder : public UInteractiveToolBuilder

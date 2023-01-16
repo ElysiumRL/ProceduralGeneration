@@ -14,7 +14,7 @@ void UBinPackerComponent::StartPacking()
 	
 	//Create bin
 	URectangleBin* bin = new URectangleBin();
-	bin->extent = GetUnscaledBoxExtent()*2;
+	bin->extent = GetUnscaledBoxExtent() * 2.0f;
 
 	packerInstance.bins.Add(bin);
 	
@@ -36,7 +36,7 @@ void UBinPackerComponent::StartPacking()
 	{
 		URectangleItem* item = packerInstance.items[i];
 
-		if (packerInstance.PackToBin(packerInstance.bins[0], item))
+		if (packerInstance.PackToBin_V2(packerInstance.bins[0], item))
 		{
 			FActorSpawnParameters spawnParams = FActorSpawnParameters();
 			spawnParams.Owner = this->GetOwner();
@@ -44,7 +44,7 @@ void UBinPackerComponent::StartPacking()
 			spawnParams.bNoFail = false;
 			spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-			FVector originFixed = FVector(item->origin.X, item->origin.Z, item->origin.Y);
+			FVector originFixed = FVector(item->origin.Z, item->origin.Y, item->origin.X) + this->GetComponentLocation();
 			FRotator rotation = item->GetRotationFromAxis(item->rotationType);
 
 			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(item->linkedActor, originFixed, rotation, spawnParams);
@@ -55,12 +55,14 @@ void UBinPackerComponent::StartPacking()
 
 				packerInstance.bins[0]->items.Add(item);
 			}
-			//packerInstance.items.Remove(item);
+			packerInstance.items.Remove(item);
+			i--;
 		}
 		else
 		{
-			//packerInstance.unfitItems.Add(item);
-			//packerInstance.items.Remove(item);
+			packerInstance.unfitItems.Add(item);
+			packerInstance.items.Remove(item);
+			i--;
 		}
 	}
 }

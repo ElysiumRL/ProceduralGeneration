@@ -155,16 +155,25 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 		walls.Append(GenerationUtilities::CreateWall(*GenerationUtilities::results[i], this));
 	}
 
+	for (int i = 0; i < walls.Num(); i++)
+	{
 
-	Properties->sceneCapture2D->GetCaptureComponent2D()->ShowOnlyActors = walls;
+	}
 
-	//Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureEveryFrame = false;
-	//Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureOnMovement = false;
 
-	Properties->sceneCapture2D->SetActorLocation(Properties->boxTransform + FVector(0, 0, UKismetMathLibrary::GetMaxElement(Properties->boxExtent)));
-	Properties->sceneCapture2D->GetCaptureComponent2D()->CaptureScene();
-	UTexture2D* texture = GenerationUtilities::CreateFromSceneCapture2D(Properties->sceneCapture2D->GetCaptureComponent2D(), this);
-	GenerationUtilities::SaveTexture2D(texture, FString("RenderTargetTest"));
+
+	//Properties->sceneCapture2D->GetCaptureComponent2D()->ShowOnlyActors = walls;
+	////Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureEveryFrame = false;
+	////Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureOnMovement = false;
+	//Properties->sceneCapture2D->SetActorLocation(Properties->boxTransform + FVector(0, 0, UKismetMathLibrary::GetMaxElement(Properties->boxExtent)));
+	//Properties->sceneCapture2D->GetCaptureComponent2D()->CaptureScene();
+	//UTexture2D* texture = GenerationUtilities::CreateFromSceneCapture2D(Properties->sceneCapture2D->GetCaptureComponent2D(), this);
+	//GenerationUtilities::SaveTexture2D(texture, FString("RenderTargetTest"));
+
+}
+
+void UPrimitiveShapeRenderer::PlaceObjectsOnWalls(ADynamicMeshWall* wall, FTagSelector tag)
+{
 
 }
 
@@ -232,13 +241,16 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 	int relI = 0;
 	int relJ = 0;
 	int relK = 0;
-	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X / Properties->subdivisionCount.X))
+	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += 
+		UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X / Properties->subdivisionCount.X))
 	{
 		relI++;
-		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y / Properties->subdivisionCount.Y))
+		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += 
+			UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y / Properties->subdivisionCount.Y))
 		{
 			relJ++;
-			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Z / Properties->subdivisionCount.Z))
+			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += 
+				UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Z / Properties->subdivisionCount.Z))
 			{
 				relK++;
 				FVector subdivTransform = FVector(
@@ -246,7 +258,8 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 					Properties->boxTransform.Y - j - subdivExtent.Y,
 					Properties->boxTransform.Z - k - subdivExtent.Z);
 
-				UEnhancedBox generatedBox = UEnhancedBox(subdivTransform, subdivExtent, Properties->rotation, FIntVector(relI, relJ, relK), centralBox);
+				UEnhancedBox generatedBox = UEnhancedBox(subdivTransform, subdivExtent,
+					Properties->rotation,FIntVector(relI, relJ, relK), centralBox);
 
 				subdivisionBoxes.Add(generatedBox);
 			}
@@ -581,11 +594,11 @@ void GenerationUtilities::MergeBoxes()
 
 }
 
-TArray<AActor*> GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer)
+TArray<ADynamicMeshWall*> GenerationUtilities::CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer)
 {
 	FWorldContext* world = GEngine->GetWorldContextFromGameViewport(GEngine->GameViewport);
 
-	TArray<AActor*> allWalls = TArray<AActor*>();
+	TArray<ADynamicMeshWall*> allWalls = TArray<ADynamicMeshWall*>();
 	//ADynamicMeshWall* wall = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, box.Center(), FRotator());
 	//bool DEBUG_RenderAsOneWall = false;
 	//

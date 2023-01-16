@@ -71,7 +71,6 @@ void UEnhancedBox::GenerateVertices()
 
 void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _color /*= FColor::Red*/, float thickness /*= 2.f*/)
 {
-	// Vertices must be precisely at in the format of GetAllBoxVertices() in order to work
 	DrawLine(RenderAPI, vertices[5], vertices[4], _color, thickness);
 	DrawLine(RenderAPI, vertices[6], vertices[7], _color, thickness);
 	DrawLine(RenderAPI, vertices[0], vertices[1], _color, thickness);
@@ -84,7 +83,6 @@ void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _col
 	DrawLine(RenderAPI, vertices[1], vertices[2], _color, thickness);
 	DrawLine(RenderAPI, vertices[5], vertices[6], _color, thickness);
 	DrawLine(RenderAPI, vertices[0], vertices[3], _color, thickness);
-
 }
 
 void UEnhancedBox::DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& _color /*= FColor::Red*/, float thickness /*= 2.f*/)
@@ -114,6 +112,99 @@ FVector UEnhancedBox::RotateBox(const FVector& boxOrigin, FVector fromLocation, 
 
 	return FVector(fromLocation.X, fromLocation.Y, fromLocation.Z);
 
+}
+
+const FVector UEnhancedBox::GetDimensionByRotationAxis(const EBoxRotationType& _rotation) const
+{
+	switch (_rotation)
+	{
+	case EBoxRotationType::LWH:
+		return FVector(Length(), Width(), Height());
+	case EBoxRotationType::HLW:
+		return FVector(Height(), Length(), Width());
+	case EBoxRotationType::HWL:
+		return FVector(Height(), Width(), Length());
+	case EBoxRotationType::WHL:
+		return FVector(Width(), Height(), Length());
+	case EBoxRotationType::WLH:
+		return FVector(Width(), Length(), Height());
+	case EBoxRotationType::LHW:
+		return FVector(Length(), Height(), Width());
+	default:
+		UE_LOG(LogEnhancedBox, Error, TEXT("Invalid Rotation Type"));
+		return FVector(0, 0, 0);
+	}
+}
+
+const FRotator UEnhancedBox::GetRotationFromAxis(const EBoxRotationType& _rotation) const
+{
+	switch (_rotation)
+	{
+	case EBoxRotationType::LWH:
+		return FromEuler(0.0f, 0.0f, 0.0f);
+
+	case EBoxRotationType::LHW:
+		return FromEuler(90.0f, 0.0f, 0.0f);
+
+	case EBoxRotationType::WLH:
+		return FromEuler(0.0f, 0.0f, 90.0f);
+
+	case EBoxRotationType::HWL:
+		return FromEuler(0.0f, 90.0, 0.0);
+
+	case EBoxRotationType::WHL:
+		return FromEuler(0.0f, 90.0f, 0.0f);
+
+	case EBoxRotationType::HLW:
+		return FromEuler(0.0f, 90.0f, 90.0f);
+
+	case EBoxRotationType::ALL:
+		return FromEuler(0.0f, 0.0f, 0.0f);
+
+	default:
+		return FromEuler(0.0f, 0.0f, 0.0f);
+
+	}
+}
+
+
+const FRotator UEnhancedBox::GetRotationAligned() const
+{
+#define X Width()
+#define Y Length()
+#define Z Height()
+
+	if (X >= Y && Y >= Z && X >= Z)
+	{
+		return FromEuler(0.0f, 0.0f, 0.0f);
+	}
+	if (X >= Y && X >= Z && Z >= Y)
+	{
+		return FromEuler(90.0f, 0.0f, 0.0f);
+	}
+	if (Z >= X && Z >= Y && Y >= X)
+	{
+		return FromEuler(0.0f, 90.0f, 0.0f);
+	}
+	if (Z >= X && Z >= Y && X >= Y)
+	{
+		return FromEuler(90.0f, 0.0f, 90.0f);
+	}
+	if (Y >= X && Y >= Z && X >= Z)
+	{
+		return FromEuler(0.0f, 0.0f, 90.0f);
+	}
+	if (Y >= X && Y >= Z && Z >= X)
+	{
+		return FromEuler(0.0f, 90.0f, 90.0f);
+	}
+	UE_LOG(LogEnhancedBox, Warning, L"No Rotation found");
+
+	return FromEuler(0.0f, 0.0f, 0.0f);
+
+#undef X
+#undef Y
+#undef Z
 }
 
 UEnhancedBox UEnhancedBox::MakeFromStaticMesh(UStaticMesh* mesh, FVector origin, float rotation)
@@ -157,6 +248,8 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 	FVector validPosition = initialPosition;
 
 	boxToPlace->origin = initialPosition;
+	FBox originalBox = boxToPlace->box;
+	FVector originalExtent = boxToPlace->extent;
 	//boxToPlace->extent = boxToPlace->box.GetExtent();
 
 	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
@@ -165,8 +258,8 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 		FVector dimension = boxToPlace->GetDimensionByRotationAxis((EBoxRotationType)i) / 2;
 
 		if (Width() < initialPosition.X + dimension.X ||
-			Height() < initialPosition.Z + dimension.Z ||
-			Length() < initialPosition.Y + dimension.Y)
+			Length() < initialPosition.Y + dimension.Y ||
+			Height() < initialPosition.Z + dimension.Z)
 		{
 			continue;
 		}
@@ -207,6 +300,8 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 
 		if (!fit)
 		{
+			boxToPlace->box = originalBox;
+			boxToPlace->extent = originalExtent;
 			boxToPlace->origin = validPosition;
 		}
 		return fit;
@@ -214,9 +309,16 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 	if (!fit)
 	{
 		boxToPlace->origin = validPosition;
+		boxToPlace->box = originalBox;
+		boxToPlace->extent = originalExtent;
 	}
 
 	return fit;
+}
+
+TArray<EBoxRotationType> URectangleBin::CanPlaceItemWithRotation(UEnhancedBox& boxToPlace)
+{
+	return TArray<EBoxRotationType>();
 }
 
 #define MIN_OFFSET 0.001f
@@ -240,14 +342,14 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 		EBoxAxis currentAxis = (EBoxAxis)i;
 		for (int j = 0; j < bin->items.Num(); j++)
 		{
-			FVector* dimension = new FVector(bin->items[j]->GetDimensionByRotationAxis());
+			FVector dimension = bin->items[j]->GetDimensionByRotationAxis();
 
 			switch (currentAxis)
 			{
 			case EBoxAxis::WIDTH:
 				pivotPoint = FVector
 				(
-					bin->items[j]->origin.X + (*dimension).X + MIN_OFFSET,
+					bin->items[j]->origin.X + dimension.X + MIN_OFFSET,
 					bin->items[j]->origin.Y,
 					bin->items[j]->origin.Z
 				);
@@ -256,7 +358,7 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 				pivotPoint = FVector
 				(
 					bin->items[j]->origin.X,
-					bin->items[j]->origin.Y + (*dimension).Y + MIN_OFFSET,
+					bin->items[j]->origin.Y + dimension.Y + MIN_OFFSET,
 					bin->items[j]->origin.Z 
 				);
 				break;
@@ -265,7 +367,7 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 				(
 					bin->items[j]->origin.X,
 					bin->items[j]->origin.Y,
-					bin->items[j]->origin.Z + (*dimension).Z + MIN_OFFSET
+					bin->items[j]->origin.Z + dimension.Z + MIN_OFFSET
 				);
 				break;
 			case EBoxAxis::ALL:
@@ -280,11 +382,9 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 			if (bin->PlaceItem(item, pivotPoint))
 			{
 				fit = true;
-				item->origin = pivotPoint;
-				delete(dimension);
+				//item->origin = pivotPoint;
 				break;
 			}
-			delete(dimension);
 		}
 		if (fit)
 		{
@@ -294,14 +394,21 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 	return fit;
 }
 
+bool Packer::PackToBin_V2(URectangleBin* bin, URectangleItem* item)
+{
+	return false;
+}
+
+#undef MIN_OFFSET
+
 FORCEINLINE void URectangleItem::MakeFromStaticMesh(UStaticMesh* mesh, FVector _origin /*= FVector(0, 0, 0)*/, float _rotation /*= 0.0f*/)
 {
 	origin = _origin;
 	extent = FVector(
-		mesh->GetBounds().BoxExtent.X * 2.0,
-		mesh->GetBounds().BoxExtent.Y * 2.0,
-		mesh->GetBounds().BoxExtent.Z * 2.0);
+		mesh->GetBounds().BoxExtent.X * 2.0f,
+		mesh->GetBounds().BoxExtent.Y * 2.0f,
+		mesh->GetBounds().BoxExtent.Z * 2.0f);
 
-	UE_LOG(LogEnhancedBox, Display, L"%s", *extent.ToString());
+	//UE_LOG(LogEnhancedBox, Display, L"%s", *extent.ToString());
 
 }

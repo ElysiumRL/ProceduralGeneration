@@ -26,12 +26,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
 	EPlacementType placementType;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	EBoxAxis placementAxis;
 
 	void StartPlacing() override;
 
 	bool PlaceActor() override;
 
-	bool PlaceLinear();
+	bool PlaceLinear(URectangleItem* item);
 
 	bool PlaceCylinder();
 

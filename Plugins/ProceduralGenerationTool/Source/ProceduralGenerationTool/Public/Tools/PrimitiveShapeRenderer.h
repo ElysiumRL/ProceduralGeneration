@@ -7,11 +7,12 @@
 #include "BaseTools/SingleClickTool.h"
 #include "Kismet/KismetMathLibrary.h"
 
+#include "TagManager.h"
+
 #include "EnhancedBox.h"
 #include "DynamicMeshWall.h"
 #include <Engine/SceneCapture2D.h>
 #include <Components/SceneCaptureComponent2D.h>
-
 #include "PrimitiveShapeRenderer.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShapeRenderer, Log, All);
@@ -207,6 +208,9 @@ public:
 	UClass* dynamicWallBP;
 
 	void StartProceduralGeneration();
+
+	void PlaceObjectsOnWalls(ADynamicMeshWall* wall, FTagSelector tag);
+
 };
 
 /**
@@ -237,7 +241,7 @@ public:
 
 	static void MergeBoxes();
 
-	static TArray<AActor*> CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer);
+	static TArray<ADynamicMeshWall*> CreateWall(UEnhancedBox box, UPrimitiveShapeRenderer* renderer);
 
 	static void LinkBoxes(bool bAllowMultipleConnections);
 

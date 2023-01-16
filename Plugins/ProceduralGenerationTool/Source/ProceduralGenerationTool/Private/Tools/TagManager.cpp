@@ -60,7 +60,7 @@ UTagManagerProperties::UTagManagerProperties()
 	bool propertiesLoaded = ImportProperties();
 	if (!propertiesLoaded)
 	{
-		UE_LOG(LogShapeRenderer, Warning, TEXT("Using Default properties as backup"));
+		UE_LOG(LogTagManager, Warning, TEXT("Using Default properties as backup"));
 		DefaultProperties();
 	}
 }
@@ -91,10 +91,10 @@ bool UTagManagerProperties::ImportProperties()
 		}
 		tags = table->tags;
 
-		UE_LOG(LogShapeRenderer, Display, TEXT("Properties Loaded"));
+		UE_LOG(LogTagManager, Display, TEXT("Properties Loaded"));
 		return true;
 	}
-	UE_LOG(LogShapeRenderer, Warning, TEXT("Properties Not Found"));
+	UE_LOG(LogTagManager, Warning, TEXT("Properties Not Found"));
 	return false;
 }
 
@@ -110,7 +110,7 @@ void UTagManagerProperties::InitializeDataTable()
 	if (DT)
 	{
 		propertiesAsTable = DT;
-		UE_LOG(LogShapeRenderer, Display, TEXT("Asset Loaded"));
+		UE_LOG(LogTagManager, Display, TEXT("Asset Loaded"));
 		return;
 	}
 	else
@@ -121,13 +121,13 @@ void UTagManagerProperties::InitializeDataTable()
 	if (DT)
 	{
 		propertiesAsTable = DT;
-		UE_LOG(LogShapeRenderer, Display, TEXT("Asset Loaded"));
+		UE_LOG(LogTagManager, Display, TEXT("Asset Loaded"));
 		return;
 	}
 	else
 	{
 		DT = NewObject<UDataTable>();
-		UE_LOG(LogShapeRenderer, Warning, TEXT("Property Data Table not found !"));
+		UE_LOG(LogTagManager, Warning, TEXT("Property Data Table not found !"));
 	}
 
 }
