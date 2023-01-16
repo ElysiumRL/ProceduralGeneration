@@ -245,6 +245,8 @@ float URectangleBin::GetFillingRatio()
 bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPosition)
 {
 	bool fit = false;
+	boxToPlace->origin = initialPosition;
+	
 	FVector validPosition = initialPosition;
 
 	boxToPlace->origin = initialPosition;
@@ -255,7 +257,7 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 	for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
 	{
 		boxToPlace->rotationType = (EBoxRotationType)i;
-		FVector dimension = boxToPlace->GetDimensionByRotationAxis((EBoxRotationType)i) / 2;
+		FVector dimension = boxToPlace->GetDimensionByRotationAxis((EBoxRotationType)i);
 
 		if (Width() < initialPosition.X + dimension.X ||
 			Length() < initialPosition.Y + dimension.Y ||
@@ -264,9 +266,9 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 			continue;
 		}
 
-		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension);
+		boxToPlace->box = FBox::BuildAABB(initialPosition, dimension/2);
 		boxToPlace->origin = initialPosition;
-		boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
+		boxToPlace->extent = boxToPlace->box.GetExtent();
 		
 
 		fit = true;
@@ -303,6 +305,8 @@ bool URectangleBin::PlaceItem(URectangleItem* boxToPlace, FVector initialPositio
 			boxToPlace->box = originalBox;
 			boxToPlace->extent = originalExtent;
 			boxToPlace->origin = validPosition;
+			boxToPlace->box = originalBox;
+			boxToPlace->extent = originalExtent;
 		}
 		return fit;
 	}
@@ -377,12 +381,10 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 			}
 			//UE_LOG(LogEnhancedBox, Warning, TEXT("%s"), *pivotPoint.ToString());
 
-			//item->origin = pivotPoint;
-
 			if (bin->PlaceItem(item, pivotPoint))
 			{
 				fit = true;
-				//item->origin = pivotPoint;
+				delete(dimension);
 				break;
 			}
 		}
