@@ -1,19 +1,19 @@
 import decimal
-import Packer
-import Item
-import Bin
-from . import Constants
+from Scripts import AuxiliaryMethods
+from Scripts import Constants
+from Scripts import Item
+
 
 DEFAULT_NUMBER_OF_DECIMALS = 3
 START_POSITION = [0, 0, 0]
 
 def get_limit_number_of_decimals(number_of_decimals):
-    return Decimal('1.{}'.format('0' * number_of_decimals))
+    return decimal.Decimal('1.{}'.format('0' * number_of_decimals))
 
 def set_to_decimal(value, number_of_decimals):
     number_of_decimals = get_limit_number_of_decimals(number_of_decimals)
 
-    return Decimal(value).quantize(number_of_decimals)
+    return decimal.Decimal(value).quantize(number_of_decimals)
 
 def rect_intersect(item1, item2, x, y):
     """Estimate whether two items get intersection in one dimension.
@@ -46,9 +46,9 @@ def intersect(item1, item2):
     """
     
     return ( 
-    rect_intersect(item1, item2, Axis.LENGTH, Axis.HEIGHT) and # xz dimension
-    rect_intersect(item1, item2, Axis.HEIGHT, Axis.WIDTH) and # yz dimension
-    rect_intersect(item1, item2, Axis.LENGTH, Axis.WIDTH)) # xy dimension
+    rect_intersect(item1, item2, Constants.Axis.LENGTH, Constants.Axis.HEIGHT) and # xz dimension
+    rect_intersect(item1, item2, Constants.Axis.HEIGHT, Constants.Axis.WIDTH) and # yz dimension
+    rect_intersect(item1, item2, Constants.Axis.LENGTH, Constants.Axis.WIDTH)) # xy dimension
 
 def stack(item1, item2):
     """Stack two items with same length, width, height or any two of three sides are same.
@@ -63,11 +63,11 @@ def stack(item1, item2):
         item1.width == item2.width and
         item1.height == item2.height
     ):
-        stacked_item_1 = Item(item1.name + item2.name, item1.length + item2.length, 
+        stacked_item_1 = Item.Item(item1.name + item2.name, item1.length + item2.length, 
                               item1.width, item1.height, item1.weight + item2.weight) #(2l, w, h)
-        stacked_item_2 = Item(item1.name + item2.name, item1.length, item1.width + item2.width, 
+        stacked_item_2 = Item.Item(item1.name + item2.name, item1.length, item1.width + item2.width, 
                               item1.height, item1.weight + item2.weight) #(l, 2w, h)
-        stacked_item_3 = Item(item1.name + item2.name, item1.length, item1.width, 
+        stacked_item_3 = Item.Item(item1.name + item2.name, item1.length, item1.width, 
                               item1.height + item2.height, item1.weight + item2.weight) #(l, w, 2h)
         
         stacked_item_list = [stacked_item_1, stacked_item_2, stacked_item_3]
@@ -79,7 +79,7 @@ def stack(item1, item2):
         item1.width == item2.width and
         item1.height != item2.height
     ):
-        stacked_item = Item(item1.name + item2.name, item1.length, item1.width, 
+        stacked_item = Item.Item(item1.name + item2.name, item1.length, item1.width, 
                             item1.height + item2.height, item1.weight + item2.weight) #(l, w, 2h)
         
         return stacked_item
@@ -89,7 +89,7 @@ def stack(item1, item2):
         item1.height == item2.height and
         item1.width != item2.width
     ):
-        stacked_item = Item(item1.name + item2.name, item1.length, item1.width + item2.width, 
+        stacked_item = Item.Item(item1.name + item2.name, item1.length, item1.width + item2.width, 
                             item1.height, item1.weight + item2.weight) #(l, 2w, h)
         
         return stacked_item
@@ -99,7 +99,7 @@ def stack(item1, item2):
         item1.height == item2.height and
         item1.length != item2.length
     ):
-        stacked_item = Item(item1.name + item2.name, item1.length + item2.length, 
+        stacked_item = Item.Item(item1.name + item2.name, item1.length + item2.length, 
                             item1.width, item1.height, item1.weight + item2.weight)
         
         return stacked_item #(2l, w, h)

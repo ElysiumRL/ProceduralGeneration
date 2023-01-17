@@ -1,7 +1,5 @@
-import Packer
-import Item
-import AuxiliaryMethods
-from . import Constants
+from Scripts import AuxiliaryMethods
+from Scripts import Constants
 
 class Bin:
     def __init__(self, size, length, width, height, capacity):
@@ -14,17 +12,17 @@ class Bin:
         self.items = [] # item in one bin -- a blank list initially
         self.unplaced_items = []
         self.unfitted_items = [] # unfitted item in one bin -- a blank list initially
-        self.number_of_decimals = DEFAULT_NUMBER_OF_DECIMALS
+        self.number_of_decimals = AuxiliaryMethods.DEFAULT_NUMBER_OF_DECIMALS
     
     def format_numbers(self, number_of_decimals):
-        self.length = set_to_decimal(self.length, number_of_decimals)
-        self.height = set_to_decimal(self.height, number_of_decimals)
-        self.width = set_to_decimal(self.width, number_of_decimals)
-        self.capacity = set_to_decimal(self.capacity, number_of_decimals)
+        self.length = AuxiliaryMethods.set_to_decimal(self.length, number_of_decimals)
+        self.height = AuxiliaryMethods.set_to_decimal(self.height, number_of_decimals)
+        self.width = AuxiliaryMethods.set_to_decimal(self.width, number_of_decimals)
+        self.capacity = AuxiliaryMethods.set_to_decimal(self.capacity, number_of_decimals)
         self.number_of_decimals = number_of_decimals
     
     def get_volume(self):
-        return set_to_decimal(
+        return AuxiliaryMethods.set_to_decimal(
             self.length * self.height * self.width, self.number_of_decimals)
      
     def get_total_weight(self):
@@ -33,7 +31,7 @@ class Bin:
         for item in self.items:
             total_weight += item.weight
         
-        return set_to_decimal(total_weight, self.number_of_decimals)
+        return AuxiliaryMethods.set_to_decimal(total_weight, self.number_of_decimals)
     
     def get_filling_ratio(self):
         total_filling_volume = 0
@@ -43,7 +41,7 @@ class Bin:
             total_filling_volume += item.get_volume()
             
         total_filling_ratio = total_filling_volume / self.get_volume()
-        return set_to_decimal(total_filling_ratio, self.number_of_decimals)
+        return AuxiliaryMethods.set_to_decimal(total_filling_ratio, self.number_of_decimals)
     
     def can_hold_item_with_rotation(self, item, pivot): 
         """Evaluate whether one item can be placed into bin with all optional orientations.
@@ -60,7 +58,7 @@ class Bin:
         rotation_type_list = [] 
         
         
-        for i in range(0, len(RotationType.ALL)): 
+        for i in range(0, len(Constants.RotationType.ALL)): 
             item.rotation_type = i 
             dimension = item.get_dimension() 
             if (
@@ -72,7 +70,7 @@ class Bin:
                 fit = True
                 
                 for current_item_in_bin in self.items: 
-                    if intersect(current_item_in_bin, item): 
+                    if AuxiliaryMethods.intersect(current_item_in_bin, item): 
                         fit = False
                         item.position = [0, 0, 0]
                         break 
@@ -91,7 +89,7 @@ class Bin:
         
         return rotation_type_list 
 
-    def put_item(self, item, pivot, distance_3d): 
+    def put_item(self, item, pivot, distance_3d):
         """Evaluate whether an item can be placed into a certain bin with which orientation. If yes, perform put action.
         Args:
             item: any item in item list.

@@ -2,8 +2,9 @@ import Item
 import Bin
 #from .Item import Item
 #from .Bin import Bin
-import AuxiliaryMethods
-import Constants
+from Scripts import AuxiliaryMethods
+from Scripts import Constants
+
 
 class Packer:
     def __init__(self):
@@ -49,7 +50,7 @@ class Packer:
             while n < len(items_in_bin):
                 pivot = [0, 0, 0]
                 
-                if axis == Axis.LENGTH: # axis = 0/ x-axis
+                if axis == Constants.Axis.LENGTH: # axis = 0/ x-axis
                     ib = items_in_bin[n]
                     pivot = [ib.position[0] + ib.get_dimension()[0],
                             ib.position[1],
@@ -118,7 +119,7 @@ class Packer:
                         distance_3D = [min(ib_neigh_x_axis), min(ib_neigh_y_axis), min(ib_neigh_z_axis)]
                         pivot_dict[tuple(pivot)] = distance_3D
                 
-                elif axis == Axis.WIDTH: # axis = 1/ y-axis
+                elif axis == Constants.Axis.WIDTH: # axis = 1/ y-axis
                     ib = items_in_bin[n]
                     pivot = [ib.position[0],
                             ib.position[1] + ib.get_dimension()[1],
@@ -186,7 +187,7 @@ class Packer:
                         distance_3D = [min(ib_neigh_x_axis), min(ib_neigh_y_axis), min(ib_neigh_z_axis)]
                         pivot_dict[tuple(pivot)] = distance_3D
             
-                elif axis == Axis.HEIGHT: # axis = 2/ z-axis
+                elif axis == Constants.Axis.HEIGHT: # axis = 2/ z-axis
                     ib = items_in_bin[n]
                     pivot = [ib.position[0],
                             ib.position[1],
@@ -274,15 +275,15 @@ class Packer:
             
             for ib in items_in_bin: 
                 pivot = [0, 0, 0] 
-                if axis == Axis.LENGTH: # axis = 0/ x-axis
+                if axis == Constants.Axis.LENGTH: # axis = 0/ x-axis
                     pivot = [ib.position[0] + ib.get_dimension()[0],
                             ib.position[1],
                             ib.position[2]]
-                elif axis == Axis.WIDTH: # axis = 1/ y-axis
+                elif axis == Constants.Axis.WIDTH: # axis = 1/ y-axis
                     pivot = [ib.position[0],
                             ib.position[1] + ib.get_dimension()[1],
                             ib.position[2]]
-                elif axis == Axis.HEIGHT: # axis = 2/ z-axis
+                elif axis == Constants.Axis.HEIGHT: # axis = 2/ z-axis
                     pivot = [ib.position[0],
                             ib.position[1],
                             ib.position[2] + ib.get_dimension()[2]]
@@ -390,7 +391,7 @@ class Packer:
         """
         
         if not bin.items:
-            response = bin.put_item(item, START_POSITION, [bin.length, bin.width, bin.height])
+            response = bin.put_item(item, AuxiliaryMethods.START_POSITION, [bin.length, bin.width, bin.height])
             
             if not response:
                 bin.unfitted_items.append(item)
@@ -410,7 +411,7 @@ class Packer:
             return  
             
     def pack(
-        self, bigger_first=True, number_of_decimals=DEFAULT_NUMBER_OF_DECIMALS):
+        self, bigger_first=True, number_of_decimals=AuxiliaryMethods.DEFAULT_NUMBER_OF_DECIMALS):
         """For a list of items and a list of bins, perform the whole pack process.
         Args:
             bin: a bin in bin list that a certain item will be placed into.
