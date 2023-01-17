@@ -384,7 +384,7 @@ bool Packer::PackToBin(URectangleBin* bin, URectangleItem* item)
 			if (bin->PlaceItem(item, pivotPoint))
 			{
 				fit = true;
-				delete(dimension);
+				//delete(dimension);
 				break;
 			}
 		}

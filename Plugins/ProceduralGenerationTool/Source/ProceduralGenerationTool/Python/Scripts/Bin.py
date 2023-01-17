@@ -70,10 +70,10 @@ class Bin:
                 fit = True
                 
                 for current_item_in_bin in self.items: 
-                    if AuxiliaryMethods.intersect(current_item_in_bin, item): 
+                    if AuxiliaryMethods.intersect(current_item_in_bin, item):
                         fit = False
-                        item.position = [0, 0, 0]
-                        break 
+                        # item.position = [0, 0, 0]
+                        break
                 
                 if fit: 
                     if self.get_total_weight() + item.weight > self.capacity: # estimate whether bin reaches its capacity
@@ -119,18 +119,18 @@ class Bin:
             
             rotation_type_number = len(rotation_type_list)
             
-            if rotation_type_number == 1: 
+            if rotation_type_number == 1:
                 item.rotation_type = rotation_type_list[0] 
                 self.items.append(item)
                 self.total_items += 1
-                return fit 
+                return fit
             
-            else: 
+            else:
                 for rotation in rotation_type_list: 
                     item.rotation_type = rotation
                     dimension = item.get_dimension()
-                    margins_3d = [distance_3d[0] - dimension[0], 
-                                 distance_3d[1] - dimension[1], 
+                    margins_3d = [distance_3d[0] - dimension[0],
+                                 distance_3d[1] - dimension[1],
                                  distance_3d[2] - dimension[2]]
                     margins_3d_temp = sorted(margins_3d)
                     margins_3d_list.append(margins_3d)

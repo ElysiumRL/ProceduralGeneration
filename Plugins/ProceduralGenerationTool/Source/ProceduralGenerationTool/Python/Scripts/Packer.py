@@ -205,7 +205,7 @@ class Packer:
                         above_neighbor = False
                         
                         while q < len(items_in_bin_temp):
-                            if items_in_bin_temp[q] == items_in_bin[n]: 
+                            if items_in_bin_temp[q] == items_in_bin[n]:
                                 q += 1 
                             
                             else:
