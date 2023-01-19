@@ -1,6 +1,6 @@
 import pywhatkit
-allowDebug = false
-rickroll = false
+allowDebug = True
+rickroll = True
 if allowDebug:
     if rickroll:
         pywhatkit.playonyt("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
