@@ -84,7 +84,7 @@ bool UOrderedPlacementBuilder::PlaceActor()
 
 bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 {
-	/*
+
 	bool fit = false;
 
 	auto& bin = this->packerInstance.bins[0];
@@ -104,14 +104,14 @@ bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 
 	for (int j = 0; j < bin->items.Num(); j++)
 	{
-		FVector dimension = lastItem->GetDimensionByRotationAxis();
+		FVector baseDimension = lastItem->GetDimensionByRotationAxis();
 
 		switch (placementAxis)
 		{
 		case EBoxAxis::WIDTH:
 			pivotPoint = FVector
 			(
-				lastItem->origin.X + dimension.X + MIN_OFFSET,
+				lastItem->origin.X + baseDimension.X + MIN_OFFSET,
 				lastItem->origin.Y,
 				lastItem->origin.Z
 			);
@@ -120,7 +120,7 @@ bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 			pivotPoint = FVector
 			(
 				lastItem->origin.X,
-				lastItem->origin.Y + dimension.Y + MIN_OFFSET,
+				lastItem->origin.Y + baseDimension.Y + MIN_OFFSET,
 				lastItem->origin.Z
 			);
 			break;
@@ -129,7 +129,7 @@ bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 			(
 				lastItem->origin.X,
 				lastItem->origin.Y,
-				lastItem->origin.Z + dimension.Z + MIN_OFFSET
+				lastItem->origin.Z + baseDimension.Z + MIN_OFFSET
 			);
 			break;
 		case EBoxAxis::ALL:
@@ -139,16 +139,17 @@ bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 		}
 		//UE_LOG(LogEnhancedBox, Warning, TEXT("%s"), *pivotPoint.ToString());
 
-		FBox boxToPlace = FBox::BuildAABB(pivotPoint, extent);
-		boxToPlace->origin = pivotPoint;
-		FBox originalBox = boxToPlace->box;
-		FVector originalExtent = boxToPlace->extent;
-		//boxToPlace->extent = boxToPlace->box.GetExtent();
+
+		FVector validPosition = pivotPoint;
+		item->origin = pivotPoint;
+		FBox originalBox = item->box;
+		FVector originalExtent = item->extent;
+		//item->extent = item->box.GetExtent();
 
 		for (int i = 0; i < (int)EBoxRotationType::ALL; i++)
 		{
-			boxToPlace->rotationType = (EBoxRotationType)i;
-			FVector dimension = boxToPlace->GetDimensionByRotationAxis((EBoxRotationType)i) / 2;
+			item->rotationType = (EBoxRotationType)i;
+			FVector dimension = item->GetDimensionByRotationAxis((EBoxRotationType)i) / 2;
 
 			if (bin->Width()  < pivotPoint.X + dimension.X ||
 				bin->Length() < pivotPoint.Y + dimension.Y ||
@@ -157,22 +158,22 @@ bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 				continue;
 			}
 
-			boxToPlace->box = FBox::BuildAABB(pivotPoint, dimension);
-			boxToPlace->origin = pivotPoint;
-			boxToPlace->extent = boxToPlace->box.GetExtent() * 2.0f;
+			item->box = FBox::BuildAABB(pivotPoint, dimension);
+			item->origin = pivotPoint;
+			item->extent = item->box.GetExtent() * 2.0f;
 
 
 			fit = true;
-			for (int j = 0; j < items.Num(); j++)
+			for (int k = 0; k < items.Num(); k++)
 			{
 				//UE_LOG(LogEnhancedBox, Warning,
-				//	TEXT("[ BoxToPlace : O - %s E - %s ] ///// [ Items(j) : O - %s E - %s ]"),
-				//	*boxToPlace->origin.ToString(),
-				//	*boxToPlace->extent.ToString(),
+				//	TEXT("[ item : O - %s E - %s ] ///// [ Items(j) : O - %s E - %s ]"),
+				//	*item->origin.ToString(),
+				//	*item->extent.ToString(),
 				//	*items[j]->origin.ToString(),
 				//	*items[j]->extent.ToString());
 
-				if (boxToPlace->box.Intersect(items[j]->box))
+				if (item->box.Intersect(items[k]->box))
 				{
 					//UE_LOG(LogEnhancedBox, Error, L"Intersection found !");
 					fit = false;
@@ -183,7 +184,7 @@ bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 			//Capacity Check (currently ignored)
 			if (fit)
 			{
-				//if (this->GetCurrentCapacity() + boxToPlace->weight > maxCapacity)
+				//if (this->GetCurrentCapacity() + item->weight > maxCapacity)
 				//{
 				//	fit = false;
 				//	return fit;
@@ -193,17 +194,17 @@ bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 
 			if (!fit)
 			{
-				boxToPlace->box = originalBox;
-				boxToPlace->extent = originalExtent;
-				boxToPlace->origin = validPosition;
+				item->box = originalBox;
+				item->extent = originalExtent;
+				item->origin = validPosition;
 			}
 			return fit;
 		}
 		if (!fit)
 		{
-			boxToPlace->origin = validPosition;
-			boxToPlace->box = originalBox;
-			boxToPlace->extent = originalExtent;
+			item->origin = validPosition;
+			item->box = originalBox;
+			item->extent = originalExtent;
 		}
 
 		return fit;
@@ -217,7 +218,6 @@ bool UOrderedPlacementBuilder::PlaceLinear(URectangleItem* item)
 	}
 
 	return fit;
-	*/
 
 
 	return true;

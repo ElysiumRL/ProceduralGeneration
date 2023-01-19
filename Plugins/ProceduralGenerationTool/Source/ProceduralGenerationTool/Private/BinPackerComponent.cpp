@@ -36,7 +36,7 @@ void UBinPackerComponent::StartPacking()
 	{
 		URectangleItem* item = packerInstance.items[i];
 
-		if (packerInstance.PackToBin_V2(packerInstance.bins[0], item))
+		if (packerInstance.PackToBin(packerInstance.bins[0], item))
 		{
 			FActorSpawnParameters spawnParams = FActorSpawnParameters();
 			spawnParams.Owner = this->GetOwner();

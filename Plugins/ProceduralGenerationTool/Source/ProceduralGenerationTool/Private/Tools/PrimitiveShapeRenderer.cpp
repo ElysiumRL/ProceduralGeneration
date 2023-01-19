@@ -158,6 +158,11 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 	for (int i = 0; i < walls.Num(); i++)
 	{
 
+
+		FVector originFixed = FVector(item->origin.Z, item->origin.Y, item->origin.X) + this->GetComponentLocation();
+		FRotator rotation = item->GetRotationFromAxis(item->rotationType);
+		AActor* actorCreated = GetWorld()->SpawnActor<AActor>(item->linkedActor, originFixed, rotation);
+
 	}
 
 
@@ -174,7 +179,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 
 void UPrimitiveShapeRenderer::PlaceObjectsOnWalls(ADynamicMeshWall* wall, FTagSelector tag)
 {
-
+	
 }
 
 void UPrimitiveShapeRenderer::OnPropertyModified(UObject* PropertySet, FProperty* Property)

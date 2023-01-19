@@ -1,5 +1,5 @@
 import pywhatkit
-allowDebug = True
+allowDebug = False
 rickroll = True
 if allowDebug:
     if rickroll:
