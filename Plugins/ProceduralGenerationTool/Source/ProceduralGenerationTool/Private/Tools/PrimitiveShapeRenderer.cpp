@@ -15,6 +15,7 @@
 #include <HighResScreenshot.h>
 #include <AssetRegistry/AssetRegistryModule.h>
 #include <UObject/SavePackage.h>
+#include "Utility/ElysiumUtilities.h"
 
 DEFINE_LOG_CATEGORY(LogShapeRenderer);
 
@@ -157,19 +158,22 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 	}
 
 
-	UDataTable* DT;
-	FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TAGS_SETTINGS);
-	DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
-	if (!DT)
-	{
-		DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
-	}
-	if (!DT)
-	{
-		UE_LOG(LogTagManager, Warning, TEXT("Property Data Table not found !"));
-		return;
-	}
-	FTableTags* tagsAsTable = DT->FindRow<FTableTags>("Settings", "", true);
+
+	FTag tag = UTagManager::GetTagFromTable(FName("TagTest"));
+
+	//UDataTable* DT;
+	//FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TAGS_SETTINGS);
+	//DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
+	//if (!DT)
+	//{
+	//	DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
+	//}
+	//if (!DT)
+	//{
+	//	UE_LOG(LogTagManager, Warning, TEXT("Property Data Table not found !"));
+	//	return;
+	//}
+	//FTableTags* tagsAsTable = DT->FindRow<FTableTags>("Settings", "", true);
 
 
 	for (int i = 0; i < walls.Num(); i++)
@@ -181,11 +185,12 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 		bool bCanPlaceFurniture = true;
 		do
 		{
-			auto actor = tagsAsTable->tags[0].actorsInTag[0];
-
+			auto actor = tag.actorsInTag[0];
+			//auto actor = tagsAsTable->tags[0].actorsInTag[0];
 			//FVector originFixed = FVector(item->origin.Z, item->origin.Y, item->origin.X) + walls[i]->GetActorLocation();
 			//FRotator rotation = item->GetRotationFromAxis(item->rotationType);
-			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(actor, wallAsBox.origin, walls[i]->GetActorRotation());
+
+			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(actor, wallAsBox.origin, walls[i]->GetActorRotation() - FRotator(0.0f, 90.0f, 0.0f));
 			bCanPlaceFurniture = false;
 		} while (bCanPlaceFurniture);
 
@@ -452,31 +457,32 @@ void UPrimitiveShapeRendererProperties::DefaultProperties()
 
 void UPrimitiveShapeRendererProperties::InitializeDataTable()
 {
-	UDataTable* DT;
-	FSoftObjectPath UnitDataTablePath = FSoftObjectPath(PRIMITIVE_RENDERING_SETTINGS);
-	DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
-	if (DT)
-	{
-		propertiesAsTable = DT;
-		UE_LOG(LogShapeRenderer, Display, TEXT("Asset Loaded"));
-		return;
-	}
-	else
-	{
-		DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
-	}
-
-	if (DT)
-	{
-		propertiesAsTable = DT;
-		UE_LOG(LogShapeRenderer, Display, TEXT("Asset Loaded"));
-		return;
-	}
-	else
-	{
-		DT = NewObject<UDataTable>();
-		UE_LOG(LogShapeRenderer, Warning, TEXT("Property Data Table not found !"));
-	}
+	propertiesAsTable = ElysiumUtilities::FindDataTableChecked(PRIMITIVE_RENDERING_SETTINGS);
+	//UDataTable* DT;
+	//FSoftObjectPath UnitDataTablePath = FSoftObjectPath(PRIMITIVE_RENDERING_SETTINGS);
+	//DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
+	//if (DT)
+	//{
+	//	propertiesAsTable = DT;
+	//	UE_LOG(LogShapeRenderer, Display, TEXT("Asset Loaded"));
+	//	return;
+	//}
+	//else
+	//{
+	//	DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
+	//}
+	//
+	//if (DT)
+	//{
+	//	propertiesAsTable = DT;
+	//	UE_LOG(LogShapeRenderer, Display, TEXT("Asset Loaded"));
+	//	return;
+	//}
+	//else
+	//{
+	//	DT = NewObject<UDataTable>();
+	//	UE_LOG(LogShapeRenderer, Warning, TEXT("Property Data Table not found !"));
+	//}
 
 }
 
