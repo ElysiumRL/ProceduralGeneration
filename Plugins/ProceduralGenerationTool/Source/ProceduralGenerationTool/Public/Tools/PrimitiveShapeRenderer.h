@@ -125,21 +125,34 @@ private:
 
 };
 
-class PROCEDURALGENERATIONTOOL_API UBoxedRoom : public UEnhancedBox
+template<typename T1>
+class PROCEDURALGENERATIONTOOL_API BoxWithObj
 {
 public:
 
-	UBoxedRoom() = default;
+	T1 object;
 
-	UBoxedRoom(const FVector& origin, const FVector& extent, float _rotation = 0.0f, const FIntVector& _relativeLocation = FIntVector::ZeroValue) :
-		UEnhancedBox(origin, extent, _rotation, _relativeLocation) {};
+	UEnhancedBox enhancedBox;
 
-	UBoxedRoom(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox) :
-		UEnhancedBox(origin, extent, _rotation, _relativeLocation, centralBox) {};
+};
 
-	FString name;
 
-	void ConnectTo(UBoxedRoom room);
+UCLASS()
+class PROCEDURALGENERATIONTOOL_API UBoxedRoom : public UObject
+{
+	GENERATED_BODY()
+
+public:
+
+
+	BoxWithObj<ADynamicMeshWall*> walls;
+
+
+	BoxWithObj<AActor*> actorsInRoom;
+
+
+
+
 };
 
 
