@@ -163,38 +163,91 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 		wallsGeneric.Add(Cast<AActor>(walls[i]));
 	}
 
-
 	FTag tag = UTagManager::GetTagFromTable(FName("TagTest"));
+
+	TArray<FActorTag> allRestrictedActors = TArray<FActorTag>();
+	
+	TArray<UEnhancedBox> allActorsAsBox = TArray<UEnhancedBox>();
 
 	for (int i = 0; i < walls.Num(); i++)
 	{
 		FVector offset;
 
 		UEnhancedBox wallAsBox = UEnhancedBox(walls[i]->GetActorLocation(), walls[i]->wallSize, walls[i]->GetActorRotation().Yaw);
-		TArray<AActor*> restrictedActors = TArray<AActor*>();
+		
+		TArray<FActorTag> restrictedActorsInRoom = TArray<FActorTag>();
+		
 		bool bCanPlaceFurniture = true;
+		
 		do
 		{
-			TSubclassOf<AActor> actor = tag.actorsInTag[0];
-			//auto actor = tagsAsTable->tags[0].actorsInTag[0];
-			//FVector originFixed = FVector(item->origin.Z, item->origin.Y, item->origin.X) + walls[i]->GetActorLocation();
-			//FRotator rotation = item->GetRotationFromAxis(item->rotationType);
+			int32 actorIndex = UKismetMathLibrary::RandomIntegerInRangeFromStream(0, tag.actorsInTag.Num(), GenerationUtilities::randomSeedRNG);
+			FActorTag actorTag = tag.actorsInTag[actorIndex];
+			bool canPlaceActor = true;
+			
+			if (actorTag.flags & (int32)ETaggedActorFlags::SingleOverallUse && allRestrictedActors.Contains(actorTag))
+			{
+				canPlaceActor = false;
+			}
 
-			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(actor, wallAsBox.origin + (walls[i]->GetActorRightVector() * -wallAsBox.extent.Y), walls[i]->GetActorRotation() - FRotator(0.0f, 90.0f, 0.0f));
+			if (actorTag.flags & (int32)ETaggedActorFlags::SingleRoomUse && restrictedActorsInRoom.Contains(actorTag))
+			{
+				canPlaceActor = false;
+			}
+
+
+			if (canPlaceActor)
+			{
+				TSubclassOf<AActor> actor = actorTag.actor;
+
+				FVector origin = wallAsBox.origin + (walls[i]->GetActorRightVector() * -wallAsBox.extent.Y);
+
+				FRotator rotation = walls[i]->GetActorRotation() - FRotator(0.0f, 90.0f, 0.0f);
+
+				AActor* actorCreated = GetWorld()->SpawnActor<AActor>(actor, origin, rotation);
+				
+				//UE_LOG(LogShapeRenderer, Display,L"%s", *actor->GetPlacementExtent().ToString());
+
+				UEnhancedBox box = UEnhancedBox::MakeFromStaticMesh(actorCreated->FindComponentByClass
+					<UStaticMeshComponent>()->GetStaticMesh(), origin, rotation.Yaw);
+
+				bool fitsInPlace = true;
+				if (allActorsAsBox.Num() != 0)
+				{
+					for (int j = 0; j < allActorsAsBox.Num(); j++)
+					{
+						if (box.box.Intersect(allActorsAsBox[j].box))
+						{
+							actorCreated->Destroy();
+							fitsInPlace = false;
+						}
+					}
+
+				}
+
+				if (fitsInPlace)
+				{
+					allActorsAsBox.Add(box);
+					allRestrictedActors.AddUnique(actorTag);
+					restrictedActorsInRoom.AddUnique(actorTag);
+				}
+			}
+
+
+			//Can Place Furniture
+
 			bCanPlaceFurniture = false;
 		} while (bCanPlaceFurniture);
 
 	}
 
-
-
-	Properties->sceneCapture2D->GetCaptureComponent2D()->ShowOnlyActors = wallsGeneric;
+	//Properties->sceneCapture2D->GetCaptureComponent2D()->ShowOnlyActors = wallsGeneric;
 	//Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureEveryFrame = false;
 	//Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureOnMovement = false;
-	Properties->sceneCapture2D->SetActorLocation(Properties->boxTransform + FVector(0, 0, UKismetMathLibrary::GetMaxElement(Properties->boxExtent)));
-	Properties->sceneCapture2D->GetCaptureComponent2D()->CaptureScene();
-	UTexture2D* texture = ElysiumUtilities::CreateFromSceneCapture2D(Properties->sceneCapture2D->GetCaptureComponent2D(), this);
-	ElysiumUtilities::SaveTexture2D(texture, FString("RenderTargetTest"));
+	//Properties->sceneCapture2D->SetActorLocation(Properties->boxTransform + FVector(0, 0, UKismetMathLibrary::GetMaxElement(Properties->boxExtent)));
+	//Properties->sceneCapture2D->GetCaptureComponent2D()->CaptureScene();
+	//UTexture2D* texture = ElysiumUtilities::CreateFromSceneCapture2D(Properties->sceneCapture2D->GetCaptureComponent2D(), this);
+	//ElysiumUtilities::SaveTexture2D(texture, FString("RenderTargetTest"));
 
 }
 

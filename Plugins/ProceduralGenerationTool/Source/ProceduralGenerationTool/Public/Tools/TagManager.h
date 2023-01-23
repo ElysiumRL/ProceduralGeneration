@@ -12,6 +12,44 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTagManager, Log, All);
 
+UENUM(BlueprintType, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class ETaggedActorFlags : uint8
+{
+	None = 0,
+	SingleOverallUse = 1 << 0,
+	SingleRoomUse = 1 << 1,
+	MustHaveInRoom = 1 << 2,
+
+};
+ENUM_CLASS_FLAGS(ETaggedActorFlags);
+
+
+//Used to set default actors & flags for the object
+USTRUCT(Blueprintable, BlueprintType)
+struct FActorTag
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, Category = "Tag")
+	TSubclassOf<AActor> actor;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = ETaggedActorFlags))
+	int32 flags = 0;
+
+	inline bool operator==(const FActorTag& a)
+	{
+		return flags == a.flags && actor == a.actor;
+	}
+
+	friend inline bool operator==(const FActorTag& a, const FActorTag& b)
+	{
+		return b.flags == a.flags && b.actor == a.actor;
+	}
+
+};
+
 //Used to register all the tags in the settings
 USTRUCT(Blueprintable, BlueprintType)
 struct FTag
@@ -27,7 +65,7 @@ public:
 	FString description;
 
 	UPROPERTY(EditAnywhere, Category = "Tag")
-	TArray<TSubclassOf<AActor>> actorsInTag;
+	TArray<FActorTag> actorsInTag;
 	
 	inline bool operator==(const FTag& a)
 	{
@@ -39,6 +77,8 @@ public:
 		return a.tag == b.tag;
 	}
 };
+
+
 
 //Used to select multiple tags from the FTag table
 USTRUCT(Blueprintable, BlueprintType)

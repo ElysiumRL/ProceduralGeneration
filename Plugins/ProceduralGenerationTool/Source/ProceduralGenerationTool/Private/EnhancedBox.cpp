@@ -207,11 +207,6 @@ const FRotator UEnhancedBox::GetRotationAligned() const
 #undef Z
 }
 
-UEnhancedBox UEnhancedBox::MakeFromStaticMesh(UStaticMesh* mesh, FVector origin, float rotation)
-{
-	return UEnhancedBox(origin, mesh->GetPositiveBoundsExtension(), rotation, FIntVector(0, 0, 0));
-}
-
 float URectangleBin::GetCurrentCapacity()
 {
 	float capacity = 0.0f;

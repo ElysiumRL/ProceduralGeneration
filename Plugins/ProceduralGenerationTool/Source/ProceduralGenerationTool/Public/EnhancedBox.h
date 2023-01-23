@@ -102,7 +102,10 @@ public:
 		static FORCEINLINE FRotator FromEuler(float roll, float pitch, float yaw) { return FRotator(pitch, yaw, roll); }
 
 		//Makes a box from the static mesh approx size
-		FORCEINLINE static UEnhancedBox MakeFromStaticMesh(UStaticMesh* mesh, FVector origin = FVector(0.0f, 0.0f, 0.0f), float rotation = 0.0f);
+		static FORCEINLINE UEnhancedBox MakeFromStaticMesh(UStaticMesh* mesh, FVector origin = FVector(0.0f, 0.0f, 0.0f), float rotation = 0.0f)
+		{
+			return UEnhancedBox(origin, mesh->GetPositiveBoundsExtension(), rotation, FIntVector(0, 0, 0));
+		}
 
 
 		FORCEINLINE const FString ToString() const { return FString::Printf(TEXT("Origin : %s - Extent : %s"), *origin.ToString(), *extent.ToString()); }

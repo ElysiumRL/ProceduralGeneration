@@ -251,8 +251,4 @@ public:
 
 	static void FillRoom();
 
-	static UTexture2D* CreateFromSceneCapture2D(USceneCaptureComponent2D* sceneCapture, UObject* Outer);
-
-
-
 };
