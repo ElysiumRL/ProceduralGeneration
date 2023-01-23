@@ -190,7 +190,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 			//FVector originFixed = FVector(item->origin.Z, item->origin.Y, item->origin.X) + walls[i]->GetActorLocation();
 			//FRotator rotation = item->GetRotationFromAxis(item->rotationType);
 
-			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(actor, wallAsBox.origin, walls[i]->GetActorRotation() - FRotator(0.0f, 90.0f, 0.0f));
+			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(actor, wallAsBox.origin + (walls[i]->GetActorRightVector() * -wallAsBox.extent.Y), walls[i]->GetActorRotation() - FRotator(0.0f, 90.0f, 0.0f));
 			bCanPlaceFurniture = false;
 		} while (bCanPlaceFurniture);
 
@@ -659,11 +659,11 @@ TArray<ADynamicMeshWall*> GenerationUtilities::CreateWall(UEnhancedBox box, UPri
 	FVector yPos = box.YPosPoint() - FVector(0, wallThickness, 0);
 	FVector yNeg = box.YNegPoint() + FVector(0, wallThickness, 0);
 	
-	ADynamicMeshWall* wall = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, yPos, FRotator(0,0,0));
+	ADynamicMeshWall* wall = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, yPos, FRotator(0, 0, 0));
 	wall->wallSize = boxSizeY;
 	wall->bHasWindow = false;
 	
-	ADynamicMeshWall* wall2 = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, yNeg, FRotator(0, 0, 0));
+	ADynamicMeshWall* wall2 = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, yNeg, FRotator(0, -180, 0));
 	wall2->wallSize = boxSizeY;
 	wall2->bHasWindow = false;
 	
@@ -674,7 +674,7 @@ TArray<ADynamicMeshWall*> GenerationUtilities::CreateWall(UEnhancedBox box, UPri
 	FVector xPos = box.XPosPoint() - FVector(wallThickness, 0, 0);
 	FVector xNeg = box.XNegPoint() + FVector(wallThickness, 0, 0);
 
-	ADynamicMeshWall* wall3 = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, xPos, FRotator(0, 90, 0));
+	ADynamicMeshWall* wall3 = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, xPos, FRotator(0, -90, 0));
 	wall3->wallSize = boxSizeX;
 	wall3->bHasWindow = false;
 	ADynamicMeshWall* wall4 = world->World()->SpawnActor<ADynamicMeshWall>(renderer->dynamicWallBP, xNeg, FRotator(0, 90, 0));
