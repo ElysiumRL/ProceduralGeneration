@@ -120,6 +120,7 @@ TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box, FBox _cent
 }
 
 
+//TODO: the generation
 void UPrimitiveShapeRenderer::StartProceduralGeneration()
 {
 	//Remove all existing boxes
@@ -148,20 +149,45 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 	//	UE_LOG(LogShapeRenderer, Warning, TEXT("%s"), *GenerationUtilities::results[i].ToString());
 	//}
 
-	TArray<AActor*> walls = TArray<AActor*>();
+	TArray<ADynamicMeshWall*> walls = TArray<ADynamicMeshWall*>();
 
 	for (int i = 0; i < GenerationUtilities::results.Num(); i++)
 	{
 		walls.Append(GenerationUtilities::CreateWall(*GenerationUtilities::results[i], this));
 	}
 
+
+	UDataTable* DT;
+	FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TAGS_SETTINGS);
+	DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
+	if (!DT)
+	{
+		DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
+	}
+	if (!DT)
+	{
+		UE_LOG(LogTagManager, Warning, TEXT("Property Data Table not found !"));
+		return;
+	}
+	FTableTags* tagsAsTable = DT->FindRow<FTableTags>("Settings", "", true);
+
+
 	for (int i = 0; i < walls.Num(); i++)
 	{
+		FVector offset;
 
+		UEnhancedBox wallAsBox = UEnhancedBox(walls[i]->GetActorLocation(), walls[i]->wallSize, walls[i]->GetActorRotation().Yaw);
+		TArray<AActor*> restrictedActors = TArray<AActor*>();
+		bool bCanPlaceFurniture = true;
+		do
+		{
+			auto actor = tagsAsTable->tags[0].actorsInTag[0];
 
-		FVector originFixed = FVector(item->origin.Z, item->origin.Y, item->origin.X) + this->GetComponentLocation();
-		FRotator rotation = item->GetRotationFromAxis(item->rotationType);
-		AActor* actorCreated = GetWorld()->SpawnActor<AActor>(item->linkedActor, originFixed, rotation);
+			//FVector originFixed = FVector(item->origin.Z, item->origin.Y, item->origin.X) + walls[i]->GetActorLocation();
+			//FRotator rotation = item->GetRotationFromAxis(item->rotationType);
+			AActor* actorCreated = GetWorld()->SpawnActor<AActor>(actor, wallAsBox.origin, walls[i]->GetActorRotation());
+			bCanPlaceFurniture = false;
+		} while (bCanPlaceFurniture);
 
 	}
 
@@ -672,37 +698,4 @@ void GenerationUtilities::ExportResults()
 void GenerationUtilities::FillRoom()
 {
 
-}
-
-void GenerationUtilities::SaveTexture2D(UTexture2D* texture, FString filename)
-{
-	FString PackageName = TEXT("/Game/ProceduralTexture/");
-	PackageName += filename;
-	UPackage* Package = CreatePackage(*PackageName);
-	Package->FullyLoad();
-
-	texture->UpdateResource();
-	Package->MarkPackageDirty();
-	FAssetRegistryModule::AssetCreated(texture);
-	
-	FString PackageFileName = FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension());
-	bool bSaved = UPackage::SavePackage(Package, texture, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *PackageFileName, GError, nullptr, true, true, SAVE_NoError);
-	Package->MarkPackageDirty();
-	//bool bSaved = UPackage::SavePackage(Package, texture, EObjectFlags::RF_Public | EObjectFlags::RF_Standalone, *PackageFileName, GError, nullptr, true, true, SAVE_NoError);
-
-	if (!bSaved)
-	{
-		UE_LOG(LogShapeRenderer, Warning, TEXT("Texture2D Not saved"));
-	}
-}
-
-UTexture2D* GenerationUtilities::CreateFromSceneCapture2D(USceneCaptureComponent2D* sceneCapture, UObject* Outer)
-{
-	UTextureRenderTarget2D* target = sceneCapture->TextureTarget;
-	UTexture2D* newTexture = target->ConstructTexture2D(Outer, "TempRenderTexture", EObjectFlags::RF_NoFlags, CTF_DeferCompression);
-	newTexture->CompressionSettings = TextureCompressionSettings::TC_Default;
-	newTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
-	newTexture->SRGB = 0;
-	newTexture->UpdateResource();
-	return newTexture;
 }

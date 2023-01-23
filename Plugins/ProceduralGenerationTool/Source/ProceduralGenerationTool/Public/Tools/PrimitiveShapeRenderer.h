@@ -214,9 +214,8 @@ public:
 };
 
 /**
- *
+ * Subdivision type (Horizontal/Vertical)
  */
-
 UENUM(BlueprintType)
 enum class ESubdivisionType : uint8
 {
@@ -224,7 +223,10 @@ enum class ESubdivisionType : uint8
 	Vertical = 1
 };
 
-
+/**
+ * Utility methods for the procedural generation
+ * TODO: Refactor a lot of the code
+ */
 class PROCEDURALGENERATIONTOOL_API GenerationUtilities
 {
 public:
@@ -248,8 +250,6 @@ public:
 	static void ExportResults();
 
 	static void FillRoom();
-
-	static void SaveTexture2D(UTexture2D* texture, FString filename);
 
 	static UTexture2D* CreateFromSceneCapture2D(USceneCaptureComponent2D* sceneCapture, UObject* Outer);
 

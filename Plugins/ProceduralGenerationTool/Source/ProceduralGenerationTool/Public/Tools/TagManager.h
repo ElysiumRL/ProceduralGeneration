@@ -21,14 +21,23 @@ struct FTag
 public:
 
 	UPROPERTY(EditAnywhere, Category = "Tag")
-		FName tag;
+	FName tag;
 
 	UPROPERTY(EditAnywhere, Category = "Tag")
-		FString description;
+	FString description;
 
 	UPROPERTY(EditAnywhere, Category = "Tag")
-		TArray<TSubclassOf<AActor>> actorsInTag;
+	TArray<TSubclassOf<AActor>> actorsInTag;
+	
+	inline bool operator==(const FTag& a)
+	{
+		return tag == a.tag;
+	}
 
+	static inline bool Equals(const FTag& a, const FTag& b)
+	{
+		return a.tag == b.tag;
+	}
 };
 
 //Used to select multiple tags from the FTag table
@@ -40,7 +49,7 @@ struct FTagSelector
 public:
 
 	UPROPERTY(EditAnywhere, Category = "Tag")
-		FName tag;
+	FName tag;
 };
 
 
@@ -52,7 +61,7 @@ struct FTableTags : public FTableRowBase
 public:
 
 	UPROPERTY(EditAnywhere, Category = "General")
-		TArray<FTag> tags;
+	TArray<FTag> tags;
 
 };
 
@@ -117,6 +126,9 @@ public:
 	virtual void Render(IToolsContextRenderAPI* RenderAPI) override;
 
 	virtual void OnPropertyModified(UObject* PropertySet, FProperty* Property) override;
+
+
+	UE_NODISCARD static FTag GetTagFromTable(const FName& tag);
 
 protected:
 	UPROPERTY()

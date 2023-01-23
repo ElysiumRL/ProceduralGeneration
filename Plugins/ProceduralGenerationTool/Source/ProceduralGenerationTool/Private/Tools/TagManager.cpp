@@ -3,6 +3,7 @@
 
 #include "Tools/TagManager.h"
 #include "InteractiveToolManager.h"
+#include "Utility/ElysiumUtilities.h"
 #include "ToolBuilderUtil.h"
 
 DEFINE_LOG_CATEGORY(LogTagManager);
@@ -18,6 +19,7 @@ UInteractiveTool* UTagManagerToolBuilder::BuildTool(const FToolBuilderState& Sce
 
 UTagManager::UTagManager()
 {
+
 }
 
 void UTagManager::SetWorld(UWorld* World)
@@ -48,6 +50,30 @@ void UTagManager::Render(IToolsContextRenderAPI* RenderAPI)
 void UTagManager::OnPropertyModified(UObject* PropertySet, FProperty* Property)
 {
 	Properties->ExportProperties();
+}
+
+FTag UTagManager::GetTagFromTable(const FName& tag)
+{
+	UDataTable* table = ElysiumUtilities::FindDataTableChecked(TAGS_SETTINGS);
+	TArray<FTableTags*> allTags;
+	table->GetAllRows("", allTags);
+
+	if (allTags[0])
+	{
+		for (int i = 0; i < allTags[0]->tags.Num(); i++)
+		{
+			FTag tagObject = allTags[0]->tags[i];
+			if (tagObject.tag == tag)
+			{
+				return tagObject;
+			}
+		}
+		UE_LOG(LogTagManager, Warning, L"Tag not found");
+		return FTag();
+	}
+	UE_LOG(LogTagManager, Warning, L"Table Row not found");
+
+	return FTag();
 }
 
 #pragma endregion TagManager
@@ -100,35 +126,37 @@ bool UTagManagerProperties::ImportProperties()
 
 void UTagManagerProperties::DefaultProperties()
 {
+
 }
 
 void UTagManagerProperties::InitializeDataTable()
 {
-	UDataTable* DT;
-	FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TAGS_SETTINGS);
-	DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
-	if (DT)
-	{
-		propertiesAsTable = DT;
-		UE_LOG(LogTagManager, Display, TEXT("Asset Loaded"));
-		return;
-	}
-	else
-	{
-		DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
-	}
-
-	if (DT)
-	{
-		propertiesAsTable = DT;
-		UE_LOG(LogTagManager, Display, TEXT("Asset Loaded"));
-		return;
-	}
-	else
-	{
-		DT = NewObject<UDataTable>();
-		UE_LOG(LogTagManager, Warning, TEXT("Property Data Table not found !"));
-	}
+	propertiesAsTable = ElysiumUtilities::FindDataTableChecked(TAGS_SETTINGS);
+	//UDataTable* DT;
+	//FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TAGS_SETTINGS);
+	//DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
+	//if (DT)
+	//{
+	//	propertiesAsTable = DT;
+	//	UE_LOG(LogTagManager, Display, TEXT("Asset Loaded"));
+	//	return;
+	//}
+	//else
+	//{
+	//	DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
+	//}
+	//
+	//if (DT)
+	//{
+	//	propertiesAsTable = DT;
+	//	UE_LOG(LogTagManager, Display, TEXT("Asset Loaded"));
+	//	return;
+	//}
+	//else
+	//{
+	//	DT = NewObject<UDataTable>();
+	//	UE_LOG(LogTagManager, Warning, TEXT("Property Data Table not found !"));
+	//}
 
 }
 
