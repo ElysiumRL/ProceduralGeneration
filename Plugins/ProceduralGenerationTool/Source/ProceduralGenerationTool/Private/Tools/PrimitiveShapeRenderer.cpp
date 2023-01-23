@@ -156,25 +156,15 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 	{
 		walls.Append(GenerationUtilities::CreateWall(*GenerationUtilities::results[i], this));
 	}
-
+	
+	TArray<AActor*> wallsGeneric = TArray<AActor*>();
+	for (int i = 0; i < walls.Num(); i++)
+	{
+		wallsGeneric.Add(Cast<AActor>(walls[i]));
+	}
 
 
 	FTag tag = UTagManager::GetTagFromTable(FName("TagTest"));
-
-	//UDataTable* DT;
-	//FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TAGS_SETTINGS);
-	//DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
-	//if (!DT)
-	//{
-	//	DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
-	//}
-	//if (!DT)
-	//{
-	//	UE_LOG(LogTagManager, Warning, TEXT("Property Data Table not found !"));
-	//	return;
-	//}
-	//FTableTags* tagsAsTable = DT->FindRow<FTableTags>("Settings", "", true);
-
 
 	for (int i = 0; i < walls.Num(); i++)
 	{
@@ -185,7 +175,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 		bool bCanPlaceFurniture = true;
 		do
 		{
-			auto actor = tag.actorsInTag[0];
+			TSubclassOf<AActor> actor = tag.actorsInTag[0];
 			//auto actor = tagsAsTable->tags[0].actorsInTag[0];
 			//FVector originFixed = FVector(item->origin.Z, item->origin.Y, item->origin.X) + walls[i]->GetActorLocation();
 			//FRotator rotation = item->GetRotationFromAxis(item->rotationType);
@@ -198,13 +188,13 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 
 
 
-	//Properties->sceneCapture2D->GetCaptureComponent2D()->ShowOnlyActors = walls;
-	////Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureEveryFrame = false;
-	////Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureOnMovement = false;
-	//Properties->sceneCapture2D->SetActorLocation(Properties->boxTransform + FVector(0, 0, UKismetMathLibrary::GetMaxElement(Properties->boxExtent)));
-	//Properties->sceneCapture2D->GetCaptureComponent2D()->CaptureScene();
-	//UTexture2D* texture = GenerationUtilities::CreateFromSceneCapture2D(Properties->sceneCapture2D->GetCaptureComponent2D(), this);
-	//GenerationUtilities::SaveTexture2D(texture, FString("RenderTargetTest"));
+	Properties->sceneCapture2D->GetCaptureComponent2D()->ShowOnlyActors = wallsGeneric;
+	//Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureEveryFrame = false;
+	//Properties->sceneCapture2D->GetCaptureComponent2D()->bCaptureOnMovement = false;
+	Properties->sceneCapture2D->SetActorLocation(Properties->boxTransform + FVector(0, 0, UKismetMathLibrary::GetMaxElement(Properties->boxExtent)));
+	Properties->sceneCapture2D->GetCaptureComponent2D()->CaptureScene();
+	UTexture2D* texture = ElysiumUtilities::CreateFromSceneCapture2D(Properties->sceneCapture2D->GetCaptureComponent2D(), this);
+	ElysiumUtilities::SaveTexture2D(texture, FString("RenderTargetTest"));
 
 }
 
