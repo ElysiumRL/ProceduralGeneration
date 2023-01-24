@@ -151,8 +151,6 @@ public:
 	BoxWithObj<AActor*> actorsInRoom;
 
 
-
-
 };
 
 
