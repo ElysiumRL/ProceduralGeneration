@@ -68,7 +68,9 @@ public:
 		void DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _color = FColor::Red, float thickness = 2.f);
 
 		void DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& _color = FColor::Red, float thickness = 2.f);
-
+	
+		FVector RotateVector(FVector vector,float angle);
+	
 		FVector RotateBox(const FVector& boxOrigin, FVector fromLocation, float angle);
 	
 		FORCEINLINE const float Area2D()	  const { return extent.X * extent.Y; }

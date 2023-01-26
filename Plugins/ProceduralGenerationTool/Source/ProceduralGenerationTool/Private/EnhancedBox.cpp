@@ -9,36 +9,41 @@ DEFINE_LOG_CATEGORY(LogEnhancedBox);
 UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation)
 {
 	subdivisions = TArray<UEnhancedBox>();
-	box = FBox::BuildAABB(origin, extent);
-	this->origin = origin;
-	this->extent = extent;
 	relativeLocation = _relativeLocation;
+	FVector rotatedExtent = RotateVector(extent,_rotation * UKismetMathLibrary::GetPI() / 180.f);
+	this->origin = origin;
+	this->extent = rotatedExtent;
 	rotation = _rotation;
+	box = FBox::BuildAABB(origin, extent);
+
 	GenerateVertices();
 }
 
 UEnhancedBox::UEnhancedBox(const FVector& origin, const FVector& extent, float _rotation, const FIntVector& _relativeLocation, const UEnhancedBox& centralBox)
 {
 	subdivisions = TArray<UEnhancedBox>();
-	box = FBox::BuildAABB(origin, extent);
 	relativeLocation = _relativeLocation;
+	FVector rotatedExtent = RotateVector(extent,_rotation * UKismetMathLibrary::GetPI() / 180.f);
 	this->origin = origin;
-	this->extent = extent;
+	this->extent = rotatedExtent;
 	rotation = _rotation;
+	box = FBox::BuildAABB(origin, extent);
+
 	GenerateVertices(centralBox);
+
 }
 
 void UEnhancedBox::GenerateVertices(const UEnhancedBox& _centralBox)
 {
 	TArray<FVector> allPoints = TArray<FVector>();
-	allPoints.Add(box.Min);										// 1
+	allPoints.Add(box.Min);											// 1
 	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Min.Z));	// 2
 	allPoints.Add(FVector(box.Max.X, box.Max.Y, box.Min.Z));	// 3
 	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Min.Z));	// 4
 	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Max.Z));	// 5
 	allPoints.Add(FVector(box.Min.X, box.Min.Y, box.Max.Z));	// 6
 	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Max.Z));	// 7
-	allPoints.Add(box.Max);										// 8
+	allPoints.Add(box.Max);											// 8
 
 	for (int i = 0; i < allPoints.Num(); i++)
 	{
@@ -51,14 +56,14 @@ void UEnhancedBox::GenerateVertices(const UEnhancedBox& _centralBox)
 void UEnhancedBox::GenerateVertices()
 {
 	TArray<FVector> allPoints = TArray<FVector>();
-	allPoints.Add(box.Min);										// 1
+	allPoints.Add(box.Min);											// 1
 	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Min.Z));	// 2
 	allPoints.Add(FVector(box.Max.X, box.Max.Y, box.Min.Z));	// 3
 	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Min.Z));	// 4
 	allPoints.Add(FVector(box.Max.X, box.Min.Y, box.Max.Z));	// 5
 	allPoints.Add(FVector(box.Min.X, box.Min.Y, box.Max.Z));	// 6
 	allPoints.Add(FVector(box.Min.X, box.Max.Y, box.Max.Z));	// 7
-	allPoints.Add(box.Max);										// 8
+	allPoints.Add(box.Max);											// 8
 
 	for (int i = 0; i < allPoints.Num(); i++)
 	{
@@ -93,6 +98,18 @@ void UEnhancedBox::DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& st
 	PDI->DrawLine(start, end, _color, SDPG_Foreground, thickness, 0.0f, true);
 	// draw a thicker line that is depth-tested
 	PDI->DrawLine(start, end, _color, SDPG_World, thickness, 0.0f, true);
+
+}
+
+FVector UEnhancedBox::RotateVector(FVector vector,float angle)
+{
+	float sinAngle = sin(angle);
+	float cosAngle = cos(angle);
+	
+	float xnew = vector.X * cosAngle - vector.Y * sinAngle;
+	float ynew = vector.X * sinAngle + vector.Y * cosAngle;
+	
+	return FVector(xnew, ynew, vector.Z);
 
 }
 

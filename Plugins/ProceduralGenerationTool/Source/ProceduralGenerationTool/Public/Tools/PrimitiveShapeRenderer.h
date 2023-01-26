@@ -144,11 +144,8 @@ class PROCEDURALGENERATIONTOOL_API UBoxedRoom : public UObject
 
 public:
 
-
-	BoxWithObj<ADynamicMeshWall*> walls;
-
-
-	BoxWithObj<AActor*> actorsInRoom;
+	TPair<ADynamicMeshWall*,UEnhancedBox*> walls;
+	TPair<AActor*,UEnhancedBox*> actorsInRoom;
 
 
 };

@@ -3,18 +3,11 @@
 
 #include "Tools/PrimitiveShapeRenderer.h"
 #include "InteractiveToolManager.h"
-#include "ToolBuilderUtil.h"
 #include "CollisionQueryParams.h"
 #include "Engine/World.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "UObject/ConstructorHelpers.h"
-
 #include "SettingsExporterImporter.h"
-#include <Components/SceneCaptureComponent2D.h>
-#include <Engine/TextureRenderTarget2D.h>
-#include <HighResScreenshot.h>
-#include <AssetRegistry/AssetRegistryModule.h>
-#include <UObject/SavePackage.h>
 #include "Utility/ElysiumUtilities.h"
 
 DEFINE_LOG_CATEGORY(LogShapeRenderer);
@@ -102,14 +95,14 @@ void UPrimitiveShapeRenderer::Render(IToolsContextRenderAPI* RenderAPI)
 TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box, FBox _centralBox)
 {
 	TArray<FVector> allPoints = TArray<FVector>();
-	allPoints.Add(_Box.Min);										// 1
+	allPoints.Add(_Box.Min);											// 1
 	allPoints.Add(FVector(_Box.Max.X, _Box.Min.Y, _Box.Min.Z));		// 2
 	allPoints.Add(FVector(_Box.Max.X, _Box.Max.Y, _Box.Min.Z));		// 3
 	allPoints.Add(FVector(_Box.Min.X, _Box.Max.Y, _Box.Min.Z));		// 4
 	allPoints.Add(FVector(_Box.Max.X, _Box.Min.Y, _Box.Max.Z));		// 5
 	allPoints.Add(FVector(_Box.Min.X, _Box.Min.Y, _Box.Max.Z));		// 6
 	allPoints.Add(FVector(_Box.Min.X, _Box.Max.Y, _Box.Max.Z));		// 7
-	allPoints.Add(_Box.Max);										// 8
+	allPoints.Add(_Box.Max);											// 8
 
 
 	for (int i = 0; i < allPoints.Num(); i++)
@@ -174,14 +167,18 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 		FVector offset;
 
 		UEnhancedBox wallAsBox = UEnhancedBox(walls[i]->GetActorLocation(), walls[i]->wallSize, walls[i]->GetActorRotation().Yaw);
-		
 		TArray<FActorTag> restrictedActorsInRoom = TArray<FActorTag>();
 		
 		bool bCanPlaceFurniture = true;
 		
 		do
 		{
-			int32 actorIndex = UKismetMathLibrary::RandomIntegerInRangeFromStream(0, tag.actorsInTag.Num(), GenerationUtilities::randomSeedRNG);
+			int32 actorIndex = UKismetMathLibrary::RandomIntegerInRangeFromStream(0, tag.actorsInTag.Num() - 1, GenerationUtilities::randomSeedRNG);
+			if(!IsValid(tag.actorsInTag[actorIndex].actor))
+			{
+				UE_LOG(LogShapeRenderer,Error,L"Invalid actor in tag %s at index %d",*tag.tag.ToString(),actorIndex);
+				continue;
+			}
 			FActorTag actorTag = tag.actorsInTag[actorIndex];
 			bool canPlaceActor = true;
 			
@@ -200,7 +197,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 			{
 				TSubclassOf<AActor> actor = actorTag.actor;
 
-				FVector origin = wallAsBox.origin + (walls[i]->GetActorRightVector() * -wallAsBox.extent.Y);
+				FVector origin = wallAsBox.vertices[0] + (walls[i]->GetActorRightVector() * -50) + (walls[i]->GetActorUpVector() * 50) + (walls[i]->GetActorForwardVector() * 50);
 
 				FRotator rotation = walls[i]->GetActorRotation() - FRotator(0.0f, 90.0f, 0.0f);
 
@@ -208,6 +205,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 				
 				//UE_LOG(LogShapeRenderer, Display,L"%s", *actor->GetPlacementExtent().ToString());
 
+				
 				UEnhancedBox box = UEnhancedBox::MakeFromStaticMesh(actorCreated->FindComponentByClass
 					<UStaticMeshComponent>()->GetStaticMesh(), origin, rotation.Yaw);
 
@@ -222,7 +220,6 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 							fitsInPlace = false;
 						}
 					}
-
 				}
 
 				if (fitsInPlace)
@@ -234,7 +231,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 			}
 
 
-			//Can Place Furniture
+			//Can Place Furniture check
 
 			bCanPlaceFurniture = false;
 		} while (bCanPlaceFurniture);
@@ -436,7 +433,7 @@ void UPrimitiveShapeRendererProperties::ExportProperties()
 	table.sceneCapture2D = sceneCapture2D;
 
 	propertiesAsTable->AddRow(TEXT("Settings"), table);
-	propertiesAsTable->MarkPackageDirty();
+	bool isDirty = propertiesAsTable->MarkPackageDirty();
 
 }
 
