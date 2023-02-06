@@ -12,7 +12,6 @@
 #include "EnhancedBox.h"
 #include "DynamicMeshWall.h"
 #include <Engine/SceneCapture2D.h>
-#include <Components/SceneCaptureComponent2D.h>
 #include "PrimitiveShapeRenderer.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShapeRenderer, Log, All);

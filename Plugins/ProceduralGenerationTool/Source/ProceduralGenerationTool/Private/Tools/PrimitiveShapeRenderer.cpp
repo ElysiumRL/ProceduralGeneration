@@ -164,7 +164,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 
 	for (int i = 0; i < walls.Num(); i++)
 	{
-		FVector offset;
+		FVector offset = FVector::ZeroVector;
 
 		UEnhancedBox wallAsBox = UEnhancedBox(walls[i]->GetActorLocation(), walls[i]->wallSize, walls[i]->GetActorRotation().Yaw);
 		TArray<FActorTag> restrictedActorsInRoom = TArray<FActorTag>();
@@ -197,7 +197,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 			{
 				TSubclassOf<AActor> actor = actorTag.actor;
 
-				FVector origin = wallAsBox.vertices[0] + (walls[i]->GetActorRightVector() * -50) + (walls[i]->GetActorUpVector() * 50) + (walls[i]->GetActorForwardVector() * 50);
+				FVector origin = wallAsBox.vertices[0] + (walls[i]->GetActorRightVector() * -50) + (walls[i]->GetActorUpVector() * 50) + (walls[i]->GetActorForwardVector() * 50) + 4*offset;
 
 				FRotator rotation = walls[i]->GetActorRotation() - FRotator(0.0f, 90.0f, 0.0f);
 
@@ -216,6 +216,8 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 					{
 						if (box.box.Intersect(allActorsAsBox[j].box))
 						{
+							UE_LOG(LogShapeRenderer,Display,L"Intersect");
+
 							actorCreated->Destroy();
 							fitsInPlace = false;
 						}
@@ -225,6 +227,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 				if (fitsInPlace)
 				{
 					allActorsAsBox.Add(box);
+					offset += box.extent * 10;
 					allRestrictedActors.AddUnique(actorTag);
 					restrictedActorsInRoom.AddUnique(actorTag);
 				}
@@ -233,7 +236,15 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 
 			//Can Place Furniture check
 
-			bCanPlaceFurniture = false;
+			if(UKismetMathLibrary::RandomFloat() <= 0.1f)
+			{
+				UE_LOG(LogShapeRenderer,Warning,L"Failed");
+				bCanPlaceFurniture = false;
+			}
+			else
+			{
+				UE_LOG(LogShapeRenderer,Warning,L"Continue");
+			}
 		} while (bCanPlaceFurniture);
 
 	}

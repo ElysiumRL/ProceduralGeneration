@@ -3,10 +3,31 @@
 
 #include "Tools/TagManager.h"
 #include "InteractiveToolManager.h"
+#include "SNegativeActionButton.h"
 #include "Utility/ElysiumUtilities.h"
 #include "ToolBuilderUtil.h"
 
 DEFINE_LOG_CATEGORY(LogTagManager);
+
+void FActorTag::RecalculateBounds()
+{
+	UE_LOG(LogTemp, Warning, L"Test");
+	if (!actor || !meshBounds)
+	{
+		actorBounds = FVector::ZeroVector;
+		actorVolume = 0.0f;
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, L"RecalculateBounds");
+
+	if (actorBounds.Size() <= meshBounds->GetPositiveBoundsExtension().Size())
+	{
+		actorBounds = meshBounds->GetPositiveBoundsExtension();
+		actorVolume = actorBounds.Size();
+		UE_LOG(LogTemp, Warning, L"%s", *meshBounds->GetPositiveBoundsExtension().ToString());
+	}
+}
 
 UInteractiveTool* UTagManagerToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
 {
@@ -19,7 +40,6 @@ UInteractiveTool* UTagManagerToolBuilder::BuildTool(const FToolBuilderState& Sce
 
 UTagManager::UTagManager()
 {
-
 }
 
 void UTagManager::SetWorld(UWorld* World)
@@ -34,7 +54,6 @@ void UTagManager::Setup()
 	Properties = NewObject<UTagManagerProperties>(this);
 	Properties->tool = this;
 	AddToolPropertySource(Properties);
-
 }
 
 void UTagManager::OnClicked(const FInputDeviceRay& ClickPos)
@@ -49,6 +68,16 @@ void UTagManager::Render(IToolsContextRenderAPI* RenderAPI)
 
 void UTagManager::OnPropertyModified(UObject* PropertySet, FProperty* Property)
 {
+	if (Property->GetNameCPP() == "actor" || Property->GetNameCPP() == "meshBounds")
+	{
+		for (int i = 0; i < Properties->tags.Num(); i++)
+		{
+			for (int j = 0; j < Properties->tags[i].actorsInTag.Num(); j++)
+			{
+				Properties->tags[i].actorsInTag[j].RecalculateBounds();
+			}
+		}
+	}
 	Properties->ExportProperties();
 }
 
@@ -96,10 +125,8 @@ void UTagManagerProperties::ExportProperties()
 {
 	FTableTags table;
 	table.tags = tags;
-
 	propertiesAsTable->AddRow(TEXT("Settings"), table);
 	propertiesAsTable->MarkPackageDirty();
-
 }
 
 bool UTagManagerProperties::ImportProperties()
@@ -126,38 +153,11 @@ bool UTagManagerProperties::ImportProperties()
 
 void UTagManagerProperties::DefaultProperties()
 {
-
 }
 
 void UTagManagerProperties::InitializeDataTable()
 {
 	propertiesAsTable = ElysiumUtilities::FindDataTableChecked(TAGS_SETTINGS);
-	//UDataTable* DT;
-	//FSoftObjectPath UnitDataTablePath = FSoftObjectPath(TAGS_SETTINGS);
-	//DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
-	//if (DT)
-	//{
-	//	propertiesAsTable = DT;
-	//	UE_LOG(LogTagManager, Display, TEXT("Asset Loaded"));
-	//	return;
-	//}
-	//else
-	//{
-	//	DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
-	//}
-	//
-	//if (DT)
-	//{
-	//	propertiesAsTable = DT;
-	//	UE_LOG(LogTagManager, Display, TEXT("Asset Loaded"));
-	//	return;
-	//}
-	//else
-	//{
-	//	DT = NewObject<UDataTable>();
-	//	UE_LOG(LogTagManager, Warning, TEXT("Property Data Table not found !"));
-	//}
-
 }
 
 #pragma endregion Properties

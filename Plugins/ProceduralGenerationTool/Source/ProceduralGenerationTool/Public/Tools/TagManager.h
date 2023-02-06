@@ -32,10 +32,19 @@ struct FActorTag
 
 public:
 
-	UPROPERTY(EditAnywhere, Category = "Tag")
+	UPROPERTY(EditAnywhere, Category = "Actor")
 	TSubclassOf<AActor> actor;
+
+	UPROPERTY(EditAnywhere,Category = "Actor")
+	UStaticMesh* meshBounds;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = ETaggedActorFlags))
+	UPROPERTY(VisibleAnywhere,Category = "Info")
+	FVector actorBounds;
+
+	UPROPERTY(VisibleAnywhere,Category = "Info")
+	float actorVolume;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "/Script/ProceduralGenerationTool.ETaggedActorFlags"))
 	int32 flags = 0;
 
 	inline bool operator==(const FActorTag& a)
@@ -48,6 +57,8 @@ public:
 		return b.flags == a.flags && b.actor == a.actor;
 	}
 
+	void RecalculateBounds();
+	
 };
 
 //Used to register all the tags in the settings
