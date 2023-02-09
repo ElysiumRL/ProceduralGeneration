@@ -164,7 +164,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 
 	for (int i = 0; i < walls.Num(); i++)
 	{
-		FVector offset = FVector::ZeroVector;
+		FVector offset = FVector(0,0,0);
 
 		UEnhancedBox wallAsBox = UEnhancedBox(walls[i]->GetActorLocation(), walls[i]->wallSize, walls[i]->GetActorRotation().Yaw);
 		TArray<FActorTag> restrictedActorsInRoom = TArray<FActorTag>();
@@ -197,7 +197,10 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 			{
 				TSubclassOf<AActor> actor = actorTag.actor;
 
-				FVector origin = wallAsBox.vertices[0] + (walls[i]->GetActorRightVector() * -50) + (walls[i]->GetActorUpVector() * 50) + (walls[i]->GetActorForwardVector() * 50) + 4*offset;
+				FVector origin = wallAsBox.vertices[0] +
+					(walls[i]->GetActorRightVector() * -50) +
+						(walls[i]->GetActorUpVector() * 50) +
+							(walls[i]->GetActorForwardVector() * 50) + 2 * offset;
 
 				FRotator rotation = walls[i]->GetActorRotation() - FRotator(0.0f, 90.0f, 0.0f);
 
@@ -206,7 +209,7 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 				//UE_LOG(LogShapeRenderer, Display,L"%s", *actor->GetPlacementExtent().ToString());
 
 				
-				UEnhancedBox box = UEnhancedBox::MakeFromStaticMesh(actorCreated->FindComponentByClass
+				UEnhancedBox box = UEnhancedBox::MakeFromStaticMeshBoundingBox(actorCreated->FindComponentByClass
 					<UStaticMeshComponent>()->GetStaticMesh(), origin, rotation.Yaw);
 
 				bool fitsInPlace = true;
@@ -216,10 +219,10 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 					{
 						if (box.box.Intersect(allActorsAsBox[j].box))
 						{
-							UE_LOG(LogShapeRenderer,Display,L"Intersect");
-
+							//UE_LOG(LogShapeRenderer,Display, L"Intersect");
 							actorCreated->Destroy();
 							fitsInPlace = false;
+							break;
 						}
 					}
 				}
@@ -227,9 +230,18 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 				if (fitsInPlace)
 				{
 					allActorsAsBox.Add(box);
-					offset += box.extent * 10;
-					allRestrictedActors.AddUnique(actorTag);
-					restrictedActorsInRoom.AddUnique(actorTag);
+
+					offset.Y += box.extent.Y;
+
+					if(actorTag.flags & (int32)ETaggedActorFlags::SingleOverallUse)
+					{
+						allRestrictedActors.AddUnique(actorTag);
+					}
+					
+					if(actorTag.flags & (int32)ETaggedActorFlags::SingleRoomUse)
+					{
+						restrictedActorsInRoom.AddUnique(actorTag);
+					}
 				}
 			}
 

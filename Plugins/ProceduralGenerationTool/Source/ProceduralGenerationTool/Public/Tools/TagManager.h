@@ -19,7 +19,6 @@ enum class ETaggedActorFlags : uint8
 	SingleOverallUse = 1 << 0,
 	SingleRoomUse = 1 << 1,
 	MustHaveInRoom = 1 << 2,
-
 };
 ENUM_CLASS_FLAGS(ETaggedActorFlags);
 
@@ -43,6 +42,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere,Category = "Info")
 	float actorVolume;
+
+	//UPROPERTY(EditAnywhere,Category = "Info")
+	//bool reload;
+
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Bitmask, BitmaskEnum = "/Script/ProceduralGenerationTool.ETaggedActorFlags"))
 	int32 flags = 0;
@@ -56,9 +59,8 @@ public:
 	{
 		return b.flags == a.flags && b.actor == a.actor;
 	}
-
-	void RecalculateBounds();
 	
+	void RecalculateBounds();
 };
 
 //Used to register all the tags in the settings

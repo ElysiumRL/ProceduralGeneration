@@ -113,6 +113,10 @@ public:
 	int32 randomSeedValue;
 
 
+	UPROPERTY(EditAnywhere, Category = "Demo", meta = (DisplayName = "Tag Selector Demo"))
+	FTagSelector selector;
+	
+
 
 
 	UPrimitiveShapeRenderer* tool;

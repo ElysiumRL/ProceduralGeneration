@@ -11,7 +11,6 @@ DEFINE_LOG_CATEGORY(LogTagManager);
 
 void FActorTag::RecalculateBounds()
 {
-	UE_LOG(LogTemp, Warning, L"Test");
 	if (!actor || !meshBounds)
 	{
 		actorBounds = FVector::ZeroVector;
@@ -19,14 +18,10 @@ void FActorTag::RecalculateBounds()
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, L"RecalculateBounds");
-
-	if (actorBounds.Size() <= meshBounds->GetPositiveBoundsExtension().Size())
-	{
-		actorBounds = meshBounds->GetPositiveBoundsExtension();
-		actorVolume = actorBounds.Size();
-		UE_LOG(LogTemp, Warning, L"%s", *meshBounds->GetPositiveBoundsExtension().ToString());
-	}
+	//UE_LOG(LogTemp, Warning, L"RecalculateBounds");
+	actorBounds = meshBounds->GetBoundingBox().GetSize();
+	actorVolume = meshBounds->GetBoundingBox().GetVolume();
+	//UE_LOG(LogTemp, Warning, L"%s", *meshBounds->GetBoundingBox().GetSize().ToString());
 }
 
 UInteractiveTool* UTagManagerToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
@@ -74,7 +69,8 @@ void UTagManager::OnPropertyModified(UObject* PropertySet, FProperty* Property)
 		{
 			for (int j = 0; j < Properties->tags[i].actorsInTag.Num(); j++)
 			{
-				Properties->tags[i].actorsInTag[j].RecalculateBounds();
+				Properties.Get()->tags[i].actorsInTag[j].RecalculateBounds();
+				//Properties.Get()->tags[i].actorsInTag[j].reload = false;
 			}
 		}
 	}
