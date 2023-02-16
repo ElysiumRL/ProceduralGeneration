@@ -74,7 +74,7 @@ void UEnhancedBox::GenerateVertices()
 
 }
 
-void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _color /*= FColor::Red*/, float thickness /*= 2.f*/)
+void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _color, float thickness)
 {
 	DrawLine(RenderAPI, vertices[5], vertices[4], _color, thickness);
 	DrawLine(RenderAPI, vertices[6], vertices[7], _color, thickness);
@@ -90,15 +90,13 @@ void UEnhancedBox::DrawBox(IToolsContextRenderAPI* RenderAPI, const FColor& _col
 	DrawLine(RenderAPI, vertices[0], vertices[3], _color, thickness);
 }
 
-void UEnhancedBox::DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& _color /*= FColor::Red*/, float thickness /*= 2.f*/)
+void UEnhancedBox::DrawLine(IToolsContextRenderAPI* RenderAPI, const FVector& start, const FVector& end, const FColor& _color, float thickness)
 {
-	//From the InteractiveTool demo
-	auto PDI = RenderAPI->GetPrimitiveDrawInterface();
+	FPrimitiveDrawInterface* PDI = RenderAPI->GetPrimitiveDrawInterface();
 	// draw a thin line that shows through objects
 	PDI->DrawLine(start, end, _color, SDPG_Foreground, thickness, 0.0f, true);
 	// draw a thicker line that is depth-tested
 	PDI->DrawLine(start, end, _color, SDPG_World, thickness, 0.0f, true);
-
 }
 
 FVector UEnhancedBox::RotateVector(FVector vector,float angle)

@@ -25,7 +25,6 @@ UInteractiveTool* UProceduralGenerationToolSimpleToolBuilder::BuildTool(const FT
 /*
  * ToolProperties implementation
  */
-
 UProceduralGenerationToolSimpleToolProperties::UProceduralGenerationToolSimpleToolProperties()
 {
 	ShowExtendedInfo = true;
@@ -35,18 +34,14 @@ UProceduralGenerationToolSimpleToolProperties::UProceduralGenerationToolSimpleTo
 /*
  * Tool implementation
  */
-
 UProceduralGenerationToolSimpleTool::UProceduralGenerationToolSimpleTool()
 {
 }
-
 
 void UProceduralGenerationToolSimpleTool::SetWorld(UWorld* World)
 {
 	this->TargetWorld = World;
 }
-
-
 void UProceduralGenerationToolSimpleTool::Setup()
 {
 	USingleClickTool::Setup();
@@ -54,7 +49,6 @@ void UProceduralGenerationToolSimpleTool::Setup()
 	Properties = NewObject<UProceduralGenerationToolSimpleToolProperties>(this);
 	AddToolPropertySource(Properties);
 }
-
 
 void UProceduralGenerationToolSimpleTool::OnClicked(const FInputDeviceRay& ClickPos)
 {

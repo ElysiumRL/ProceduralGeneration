@@ -201,7 +201,9 @@ protected:
 	void SelectUpdateMethod();
 
 	void UpdateBoundingBox();
-	
+	void RemoveHollowedSubdivisions();
+	void BuildSubdivisions(FVector subdivExtent);
+
 	void UpdateBoxSubdivisions();
 	
 	void SetRandomSubdivisionColors();

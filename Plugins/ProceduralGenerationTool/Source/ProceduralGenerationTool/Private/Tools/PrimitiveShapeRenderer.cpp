@@ -103,8 +103,7 @@ TArray<FVector> UPrimitiveShapeRenderer::GetAllBoxVertices(FBox _Box, FBox _cent
 	allPoints.Add(FVector(_Box.Min.X, _Box.Min.Y, _Box.Max.Z));		// 6
 	allPoints.Add(FVector(_Box.Min.X, _Box.Max.Y, _Box.Max.Z));		// 7
 	allPoints.Add(_Box.Max);											// 8
-
-
+	
 	for (int i = 0; i < allPoints.Num(); i++)
 	{
 		allPoints[i] = RotateBox(_centralBox.GetCenter(), allPoints[i], Properties->rotation * UKismetMathLibrary::GetPI() / 180.f);
@@ -207,7 +206,6 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 				AActor* actorCreated = GetWorld()->SpawnActor<AActor>(actor, origin, rotation);
 				
 				//UE_LOG(LogShapeRenderer, Display,L"%s", *actor->GetPlacementExtent().ToString());
-
 				
 				UEnhancedBox box = UEnhancedBox::MakeFromStaticMeshBoundingBox(actorCreated->FindComponentByClass
 					<UStaticMeshComponent>()->GetStaticMesh(), origin, rotation.Yaw);
@@ -231,7 +229,8 @@ void UPrimitiveShapeRenderer::StartProceduralGeneration()
 				{
 					allActorsAsBox.Add(box);
 
-					offset.Y += box.extent.Y;
+					
+					offset += box.extent.Y * walls[i]->GetActorRightVector();
 
 					if(actorTag.flags & (int32)ETaggedActorFlags::SingleOverallUse)
 					{
@@ -322,6 +321,59 @@ void UPrimitiveShapeRenderer::UpdateBoundingBox()
 	centralBox = UEnhancedBox(Properties->boxTransform, Properties->boxExtent, Properties->rotation, FIntVector(0, 0, 0));
 }
 
+void UPrimitiveShapeRenderer::RemoveHollowedSubdivisions()
+{
+	for (int i = 0; i < subdivisionBoxes.Num(); i++)
+	{
+		if (
+			(subdivisionBoxes[i].relativeLocation.X == 1 || subdivisionBoxes[i].relativeLocation.X == Properties->subdivisionCount.X)
+			|| (subdivisionBoxes[i].relativeLocation.Y == 1 || subdivisionBoxes[i].relativeLocation.Y == Properties->subdivisionCount.Y))
+		{
+
+		}
+		else
+		{
+			subdivisionBoxes.RemoveAt(i);
+			i--;
+		}
+	}
+}
+
+void UPrimitiveShapeRenderer::BuildSubdivisions(FVector subdivExtent)
+{
+	//i,j,k represents locations
+	//relI,relJ,relK represents coordinates relative to the boxes
+	int relI = 0;
+	int relJ = 0;
+	int relK = 0;
+	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += 
+	     UKismetMathLibrary::FCeil(2 * subdivExtent.X))
+	{
+		relI++;
+		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += 
+		     UKismetMathLibrary::FCeil(2 * subdivExtent.Y))
+		{
+			relJ++;
+			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += 
+			     UKismetMathLibrary::FCeil(2 * subdivExtent.Z))
+			{
+				relK++;
+				FVector subdivTransform = FVector(
+					Properties->boxTransform.X - i - subdivExtent.X,
+					Properties->boxTransform.Y - j - subdivExtent.Y,
+					Properties->boxTransform.Z - k - subdivExtent.Z);
+
+				UEnhancedBox generatedBox = UEnhancedBox(subdivTransform, subdivExtent,
+				                                         Properties->rotation,FIntVector(relI, relJ, relK), centralBox);
+
+				subdivisionBoxes.Add(generatedBox);
+			}
+			relK = 0;
+		}
+		relJ = 0;
+	}
+}
+
 void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 {
 	subdivisionBoxes.Empty();
@@ -335,55 +387,12 @@ void UPrimitiveShapeRenderer::UpdateBoxSubdivisions()
 		(float)Properties->boxExtent.Y / (float)Properties->subdivisionCount.Y,
 		(float)Properties->boxExtent.Z / (float)Properties->subdivisionCount.Z);
 
-	//i,j,k represents locations
-	//relI,relJ,relK represents coordinates relative to the boxes
-	int relI = 0;
-	int relJ = 0;
-	int relK = 0;
-	for (float i = -Properties->boxExtent.X; i < Properties->boxExtent.X; i += 
-		UKismetMathLibrary::FCeil(2 * Properties->boxExtent.X / Properties->subdivisionCount.X))
-	{
-		relI++;
-		for (float j = -Properties->boxExtent.Y; j < Properties->boxExtent.Y; j += 
-			UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Y / Properties->subdivisionCount.Y))
-		{
-			relJ++;
-			for (float k = -Properties->boxExtent.Z; k < Properties->boxExtent.Z; k += 
-				UKismetMathLibrary::FCeil(2 * Properties->boxExtent.Z / Properties->subdivisionCount.Z))
-			{
-				relK++;
-				FVector subdivTransform = FVector(
-					Properties->boxTransform.X - i - subdivExtent.X,
-					Properties->boxTransform.Y - j - subdivExtent.Y,
-					Properties->boxTransform.Z - k - subdivExtent.Z);
-
-				UEnhancedBox generatedBox = UEnhancedBox(subdivTransform, subdivExtent,
-					Properties->rotation,FIntVector(relI, relJ, relK), centralBox);
-
-				subdivisionBoxes.Add(generatedBox);
-			}
-			relK = 0;
-		}
-		relJ = 0;
-	}
+	BuildSubdivisions(subdivExtent);
 
 	//Remove boxes if hollow is enabled
 	if (Properties->primitiveShape == EPrimitiveShapeType::RectangleHollow)
 	{
-		for (int i = 0; i < subdivisionBoxes.Num(); i++)
-		{
-			if (
-				(subdivisionBoxes[i].relativeLocation.X == 1 || subdivisionBoxes[i].relativeLocation.X == Properties->subdivisionCount.X)
-				|| (subdivisionBoxes[i].relativeLocation.Y == 1 || subdivisionBoxes[i].relativeLocation.Y == Properties->subdivisionCount.Y))
-			{
-
-			}
-			else
-			{
-				subdivisionBoxes.RemoveAt(i);
-				i--;
-			}
-		}
+		RemoveHollowedSubdivisions();
 	}
 }
 
@@ -521,32 +530,6 @@ void UPrimitiveShapeRendererProperties::DefaultProperties()
 void UPrimitiveShapeRendererProperties::InitializeDataTable()
 {
 	propertiesAsTable = ElysiumUtilities::FindDataTableChecked(PRIMITIVE_RENDERING_SETTINGS);
-	//UDataTable* DT;
-	//FSoftObjectPath UnitDataTablePath = FSoftObjectPath(PRIMITIVE_RENDERING_SETTINGS);
-	//DT = Cast<UDataTable>(UnitDataTablePath.ResolveObject());
-	//if (DT)
-	//{
-	//	propertiesAsTable = DT;
-	//	UE_LOG(LogShapeRenderer, Display, TEXT("Asset Loaded"));
-	//	return;
-	//}
-	//else
-	//{
-	//	DT = Cast<UDataTable>(UnitDataTablePath.TryLoad());
-	//}
-	//
-	//if (DT)
-	//{
-	//	propertiesAsTable = DT;
-	//	UE_LOG(LogShapeRenderer, Display, TEXT("Asset Loaded"));
-	//	return;
-	//}
-	//else
-	//{
-	//	DT = NewObject<UDataTable>();
-	//	UE_LOG(LogShapeRenderer, Warning, TEXT("Property Data Table not found !"));
-	//}
-
 }
 
 #pragma endregion Properties

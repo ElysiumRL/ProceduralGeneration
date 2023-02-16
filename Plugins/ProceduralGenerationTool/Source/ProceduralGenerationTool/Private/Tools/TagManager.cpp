@@ -3,7 +3,6 @@
 
 #include "Tools/TagManager.h"
 #include "InteractiveToolManager.h"
-#include "SNegativeActionButton.h"
 #include "Utility/ElysiumUtilities.h"
 #include "ToolBuilderUtil.h"
 
@@ -18,10 +17,8 @@ void FActorTag::RecalculateBounds()
 		return;
 	}
 
-	//UE_LOG(LogTemp, Warning, L"RecalculateBounds");
 	actorBounds = meshBounds->GetBoundingBox().GetSize();
 	actorVolume = meshBounds->GetBoundingBox().GetVolume();
-	//UE_LOG(LogTemp, Warning, L"%s", *meshBounds->GetBoundingBox().GetSize().ToString());
 }
 
 UInteractiveTool* UTagManagerToolBuilder::BuildTool(const FToolBuilderState& SceneState) const
